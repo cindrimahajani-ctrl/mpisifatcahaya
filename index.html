@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAHAYA EXPLORER - Misi Detektif Cahaya</title>
+    <!-- Library html2pdf.js untuk mengunduh Laporan dan Sertifikat PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* === VARIABEL WARNA & TEMA === */
+        :root {
+            --primary-blue: #0088cc;
+            --sky-blue: #74b9ff;
+            --dark-blue: #0984e3;
+            --nature-green: #00b894;
+            --bright-yellow: #fdcb6e;
+            --orange: #e17055;
+            --white: #ffffff;
+            --text-dark: #2d3436;
+            --bg-light: #f1f2f6;
+            --btn-shadow: rgba(0, 0, 0, 0.2);
+            --gold-islamic: #d4af37;
+        }
+
+        /* === RESET & GLOBAL STYLES === */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+        body { background-color: var(--sky-blue); background-image: radial-gradient(circle, #a2d1ff 0%, #74b9ff 100%); color: var(--text-dark); overflow-x: hidden; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: var(--dark-blue); border-radius: 10px; }
+
+        #app-container { width: 100%; max-width: 1024px; height: 100vh; max-height: 768px; background-color: var(--bg-light); position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 4px solid var(--white); border-radius: 20px; display: flex; flex-direction: column; }
+
+        /* === TYPOGRAPHY & BUTTONS === */
+        h1, h2, h3 { color: var(--dark-blue); font-weight: 800; text-align: center; margin-bottom: 15px;}
+        .btn { background-color: var(--bright-yellow); color: var(--text-dark); border: none; padding: 12px 24px; font-size: 1.1rem; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 6px 0 #e6a83a, 0 8px 10px var(--btn-shadow); transition: all 0.1s; display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;}
+        .btn:active { transform: translateY(6px); box-shadow: 0 0px 0 #e6a83a, 0 2px 5px var(--btn-shadow); }
+        .btn-primary { background-color: var(--primary-blue); color: white; box-shadow: 0 6px 0 #005f8f; }
+        .btn-success { background-color: var(--nature-green); color: white; box-shadow: 0 6px 0 #008f73; }
+        .btn-danger { background-color: var(--orange); color: white; box-shadow: 0 6px 0 #b75a43; }
+        .btn-info { background-color: #8e44ad; color: white; box-shadow: 0 6px 0 #732d91; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+        /* === LAYOUT SCREENS === */
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; position: absolute; top: 0; left: 0; background: white; animation: fadeIn 0.4s ease-out; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+        .header-bar { background: var(--primary-blue); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 10; }
+        .header-title { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 1.2rem; }
+        .header-stats { display: flex; gap: 15px; font-weight: bold; background: rgba(0,0,0,0.2); padding: 5px 15px; border-radius: 20px; align-items: center;}
+        
+        .audio-controls { display: flex; gap: 10px; }
+        .btn-audio { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
+        .btn-audio:hover { background: rgba(255,255,255,0.4); }
+
+        .content-area { flex: 1; padding: 20px; overflow-y: auto; position: relative; background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%); }
+
+        /* === PANELS CSS === */
+        .panel-islami { background: linear-gradient(135deg, #0a3d62 0%, #0984e3 100%); color: white; border: 4px solid var(--gold-islamic); border-radius: 15px; padding: 25px; margin-top: 20px; position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .panel-islami::before { content: ""; position: absolute; top:0; left:0; width:100%; height:100%; background-image: repeating-linear-gradient(45deg, rgba(212, 175, 55, 0.1) 0, rgba(212, 175, 55, 0.1) 2px, transparent 2px, transparent 10px); pointer-events: none; }
+        .panel-islami h4 { color: var(--gold-islamic); font-size: 1.3rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid var(--gold-islamic); padding-bottom: 5px; display:inline-block;}
+        .arabic-text { font-size: 2rem; font-weight: bold; text-align: right; line-height: 2.2; margin: 15px 0; color: var(--gold-islamic); font-family: "Amiri", "Traditional Arabic", serif; text-shadow: 1px 1px 5px rgba(0,0,0,0.5);}
+        .ayat-terjemah { font-style: italic; font-size: 1.05rem; margin-bottom: 15px; line-height: 1.6; opacity: 0.9;}
+        .ayat-pesan { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; line-height: 1.5; font-size: 1rem; border-left: 5px solid var(--gold-islamic);}
+        
+        .panel-fenomena { background: #e8f4f8; border: 3px solid #74b9ff; border-left: 10px solid var(--primary-blue); padding: 20px; border-radius: 15px; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .panel-fenomena h4 { color: var(--primary-blue); margin-bottom: 15px; display:flex; align-items:center; gap:8px; font-size:1.2rem;}
+        .panel-fenomena ul { margin-left: 25px; line-height: 1.8; color: #34495e;}
+        .panel-fenomena .aktivitas { background: white; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px dashed var(--primary-blue); font-weight: bold; color: var(--dark-blue);}
+
+        .panel-refleksi { background: #fff9e6; border: 3px solid var(--bright-yellow); padding: 20px; border-radius: 15px; margin-top: 20px; text-align: left; position: relative; }
+        .panel-refleksi h4 { color: #d35400; margin-bottom: 10px; display:flex; align-items:center; gap:8px;}
+        .panel-refleksi p { font-size: 1.05rem; line-height: 1.5; color: #444; margin-bottom: 15px;}
+        .panel-refleksi textarea, .textarea-custom { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #e1b12c; font-family: inherit; font-size:1rem; resize: vertical; outline:none; transition:0.3s;}
+        .panel-refleksi textarea:focus, .textarea-custom:focus { border-color: var(--orange); box-shadow: 0 0 10px rgba(225, 112, 85, 0.3);}
+        .panca-cinta { display:inline-block; background: var(--nature-green); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; margin-bottom: 10px;}
+
+        /* === WELCOME SCREEN === */
+        #screen-welcome { background: linear-gradient(to bottom, #74b9ff, #a2d1ff); justify-content: center; align-items: center; text-align: center; position: relative; overflow: hidden; }
+        .cloud { position: absolute; background: white; border-radius: 50px; opacity: 0.8; animation: floatClouds linear infinite; }
+        .cloud::before, .cloud::after { content: ''; position: absolute; background: white; border-radius: 50%; }
+        @keyframes floatClouds { from { transform: translateX(-200px); } to { transform: translateX(1200px); } }
+
+        .welcome-card { background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 30px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); border: 5px solid var(--primary-blue); max-width: 600px; position: relative; z-index: 2; }
+        .app-title { font-size: 3.5rem; color: var(--primary-blue); text-shadow: 2px 2px 0px var(--bright-yellow); margin-bottom: 5px; line-height: 1.1; }
+        
+        /* === FLOATING PROFILE === */
+        #floating-profile { position: absolute; top: 20px; left: 20px; z-index: 50; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.95); padding: 8px 12px; border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); border: 2px solid var(--sky-blue); cursor: pointer; transition: all 0.4s; }
+        #floating-profile:hover { transform: translateY(-3px); border-color: var(--primary-blue); }
+        .profile-avatar { position: relative; width: 45px; height: 45px; border-radius: 50%; overflow: hidden; border: 2px solid var(--bright-yellow); background-color: var(--primary-blue); display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; flex-shrink: 0; }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 2; }
+        .profile-initials { position: absolute; z-index: 1; }
+        .profile-details { overflow: hidden; white-space: nowrap; transition: max-width 0.4s ease, opacity 0.4s ease; max-width: 0; opacity: 0; text-align: left; }
+        #floating-profile.expanded .profile-details { max-width: 250px; opacity: 1; margin-right: 10px; }
+        .profile-school-logo { width: 0; opacity: 0; transition: all 0.4s ease; overflow: hidden; flex-shrink: 0; display: flex; border-radius: 50%; background: white;}
+        #floating-profile.expanded .profile-school-logo { width: 45px; height: 45px; opacity: 1; margin-left: 5px; border: 2px solid var(--nature-green); }
+        .profile-school-logo img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+
+        /* === MASCot === */
+        #mascot-container { position: absolute; bottom: -150px; left: 20px; z-index: 50; transition: bottom 0.5s; display: flex; align-items: flex-end; gap: 15px; pointer-events: none; }
+        #mascot-container.show { bottom: 20px; }
+        .mascot-char { font-size: 80px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); }
+        .mascot-bubble { background: white; border: 3px solid var(--primary-blue); padding: 10px 20px; border-radius: 20px; border-bottom-left-radius: 0; font-weight: bold; color: var(--dark-blue); box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 200px; font-size: 1rem; }
+        
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-5deg); } 75% { transform: translateX(5px) rotate(5deg); } }
+        @keyframes jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .anim-shake { animation: shake 0.4s ease-in-out; }
+        .anim-jump { animation: jump 0.5s ease-in-out; }
+
+        .confetti { position: absolute; width: 10px; height: 10px; background-color: #f00; z-index: 100; animation: fall 3s linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+        /* === DASHBOARD, MAP, & SIDEBAR === */
+        .dashboard-layout { display: flex; height: 100%; }
+        .sidebar { width: 220px; background: var(--dark-blue); color: white; padding: 20px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto;}
+        .sidebar-btn { background: rgba(255,255,255,0.1); border: none; padding: 12px; color: white; font-weight: bold; text-align: left; border-radius: 10px; cursor: pointer; transition: 0.2s; font-size: 0.95rem;}
+        .sidebar-btn:hover { background: var(--orange); }
+        .sidebar-btn.active { background: var(--bright-yellow); color: var(--dark-blue); }
+        .dash-content { flex: 1; padding: 30px; overflow-y: auto; background: var(--bg-light); }
+        
+        .map-grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 20px 0; }
+        .mission-card { background: white; border: 4px solid #ddd; border-radius: 20px; width: 180px; padding: 15px; text-align: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .mission-card:hover:not(.locked) { transform: scale(1.05); }
+        .mission-card.locked { opacity: 0.6; cursor: not-allowed; background: #eee; }
+        .mission-card.unlocked { border-color: var(--primary-blue); }
+        .mission-card.completed { border-color: var(--nature-green); }
+
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { padding: 10px 20px; border: 2px solid var(--primary-blue); background: white; border-radius: 20px; cursor: pointer; font-weight: bold; color: var(--primary-blue); transition: 0.3s; }
+        .tab-btn.active { background: var(--primary-blue); color: white; }
+        .tab-content { display: none; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #eee;}
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        .lab-container { border: 3px solid var(--dark-blue); border-radius: 15px; padding: 20px; background: #1e272e; color: white; position: relative; min-height: 350px; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;}
+        
+        #sertifikat-container { 
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 842 595"><rect fill="%23f1c40f" width="842" height="595"/><rect fill="%23ffffff" x="20" y="20" width="802" height="555" rx="20"/></svg>') no-repeat center center; 
+            background-size: cover; 
+            width: 842px; 
+            height: 595px; 
+            padding: 40px; 
+            border-radius: 20px; 
+            text-align: center; 
+            border: 5px solid var(--bright-yellow); 
+            color: var(--dark-blue); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            margin: 0 auto; 
+            position: relative;
+            box-sizing: border-box;
+        }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center;}
+        .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 4px solid var(--primary-blue);}
+        .modal-content input, .modal-content select { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.1rem; text-align: center; font-family: inherit;}
+
+        /* GALERI, BADGES, GURU */
+        .badge-container { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px; }
+        .badge-item { display: flex; flex-direction: column; align-items: center; opacity: 0.3; filter: grayscale(100%); transition: 0.3s; width: 100px; text-align: center;}
+        .badge-item.earned { opacity: 1; filter: grayscale(0%); transform: scale(1.05); }
+        .badge-icon { font-size: 50px; background: white; border: 3px solid var(--bright-yellow); border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 5px;}
+        .badge-title { font-size: 0.8rem; font-weight: bold; color: var(--dark-blue); }
+
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .gallery-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 2px solid #eee; display:flex; flex-direction:column;}
+        .gallery-img-placeholder { background: var(--sky-blue); height: 150px; display: flex; align-items: center; justify-content: center; font-size: 60px; border-bottom: 3px solid var(--primary-blue);}
+        .gallery-body { padding: 15px; flex: 1; display:flex; flex-direction:column;}
+        .gallery-buttons { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; }
+        .gallery-btn { flex: 1; background: var(--bg-light); border: 1px solid #ccc; border-radius: 5px; padding: 5px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition:0.2s;}
+        .gallery-btn:hover { background: var(--primary-blue); color: white;}
+
+        .table-guru { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        .table-guru th, .table-guru td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .table-guru th { background-color: var(--primary-blue); color: white; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- HEADER NAV -->
+    <div class="header-bar" id="main-header" style="display: none;">
+        <div class="header-title">🕵️‍♂️ Cahaya Explorer</div>
+        <div class="header-stats">
+            <span>⭐ <span id="ui-stars">0</span></span>
+            <span>🏆 <span id="ui-score">0</span></span>
+            <div class="audio-controls">
+                <button class="btn-audio" id="btn-bgm" onclick="toggleBGM()">🎵 BGM: ON</button>
+                <button class="btn-audio" id="btn-sfx" onclick="toggleSFX()">🔊 SFX: ON</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. WELCOME SCREEN -->
+    <div id="screen-welcome" class="screen active">
+        <div class="cloud" style="width: 100px; height: 30px; top: 10%; left: -150px; animation-duration: 25s;"></div>
+        <div class="cloud" style="width: 150px; height: 40px; top: 30%; left: -200px; animation-duration: 35s;"></div>
+        <div class="cloud" style="width: 80px; height: 25px; top: 60%; left: -100px; animation-duration: 20s;"></div>
+
+        <!-- Profil Pengembang & Identitas Sekolah -->
+        <div id="floating-profile" onclick="this.classList.toggle('expanded')" title="Klik untuk melihat Profil Pengembang">
+            <div class="profile-avatar"><span class="profile-initials">CM</span><img id="home-profile-img" src="https://iili.io/nSiSkAX.md.png" alt="" onerror="this.style.display='none'"></div>
+            <div class="profile-details">
+                <div id="home-guru-name" style="font-weight: bold; color: var(--dark-blue); font-size: 0.95rem;">Cindrianingsih Mahajani, S.Pd</div>
+                <div id="home-school-name" style="font-size: 0.8rem; color: #555;">MIN 1 Kota Gorontalo</div>
+                <div style="font-size: 0.75rem; color: var(--primary-blue);">cindrianingsihm@gmail.com</div>
+            </div>
+            <div class="profile-school-logo"><img id="home-school-logo" src="https://iili.io/n8c9lgR.png" alt="Logo Sekolah" onerror="this.src='https://placehold.co/100x100/00b894/white?text=Logo'"></div>
+        </div>
+
+        <div class="welcome-card">
+            <img id="welcome-logo" src="https://iili.io/n8c9lgR.png" alt="Logo Sekolah" style="height: 100px; margin: 0 auto 15px auto; display: block; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.15));" crossorigin="anonymous" onerror="this.src='https://placehold.co/100x100/00b894/white?text=Logo'">
+            <h1 class="app-title">CAHAYA<br>EXPLORER</h1>
+            <div style="font-size: 1.5rem; color: var(--orange); margin-bottom: 20px; font-weight: bold;">Misi Detektif Cahaya</div>
+            <p style="margin-bottom: 20px; color: #555;">Mari berpetualang, amati alam, dan temukan rahasia sifat-sifat cahaya ciptaan Allah!</p>
+            <div style="display: flex; flex-direction: column; gap: 15px; width: 70%; margin: 0 auto;">
+                <button class="btn btn-primary" onclick="showInputModal()">▶ MULAI PETUALANGAN</button>
+                <button class="btn" onclick="showScreen('screen-dashboard')">👤 PROFIL & DASHBOARD</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. PETA MISI -->
+    <div id="screen-map" class="screen">
+        <div class="dashboard-layout">
+            <div class="sidebar" id="sidebar-map"></div>
+            <div class="content-area">
+                <h2>Peta Misi Petualangan</h2>
+                <div class="map-grid" id="mission-container"></div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="checkAllMissionsCompleted()">Uji Pengetahuan (Kuis) ➔</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. MATERI, LAB & GAME -->
+    <div id="screen-mission-detail" class="screen">
+        <div class="content-area">
+            <button class="btn" onclick="showScreen('screen-map')" style="margin-bottom: 15px; padding: 5px 15px;">⬅ Kembali Peta</button>
+            <h2 id="misi-judul">Judul Misi</h2>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('materi')">📖 Ayo Mempelajari</button>
+                <button class="tab-btn" onclick="switchTab('lab')">🧪 Laboratorium (Mencoba)</button>
+                <button class="tab-btn" id="tab-btn-game" onclick="switchTab('game')">🕵️‍♂️ Misi Detektif</button>
+            </div>
+
+            <!-- Tab Materi -->
+            <div id="tab-materi" class="tab-content active">
+                <div style="text-align:center; font-size: 80px;" id="materi-icon">🔦</div>
+                <p id="materi-teks" style="font-size: 1.1rem; line-height: 1.6; margin: 15px 0; font-weight:bold;"></p>
+                <div style="background: #fff3cd; padding: 15px; border-left: 5px solid var(--bright-yellow); border-radius: 10px; margin-bottom: 15px;"><strong>💡 Tahukah Kamu?</strong> <span id="materi-fakta"></span></div>
+                
+                <div class="panel-fenomena" id="materi-fenomena">
+                    <h4>🔍 Pernahkah Kamu Menemukan Ini?</h4>
+                    <div id="fenomena-isi"></div>
+                    <div class="aktivitas" id="fenomena-aktivitas"></div>
+                </div>
+
+                <div class="panel-islami" id="materi-ayat">
+                    <h4>✨ Ayat Allah, Cahaya Kehidupan</h4>
+                    <div style="font-size: 1.1rem; color: var(--bright-yellow); font-weight:bold; margin-bottom:5px;" id="quran-surah"></div>
+                    <div class="arabic-text" id="quran-arab"></div>
+                    <div class="ayat-terjemah" id="quran-arti"></div>
+                    <div class="ayat-pesan"><strong>Pesan:</strong> <span id="quran-pesan"></span></div>
+                </div>
+
+                <div class="panel-refleksi" id="materi-refleksi">
+                    <h4>💭 Renungan Hati (Refleksi)</h4>
+                    <div class="panca-cinta" id="refleksi-cinta"></div>
+                    <p id="refleksi-tanya"></p>
+                    <textarea id="refleksi-jawaban" placeholder="Tuliskan pemikiran dan jawabanmu di sini ya..."></textarea>
+                    <button class="btn btn-success" style="margin-top:10px;" onclick="simpanRenunganMisi()">Simpan Renungan</button>
+                </div>
+
+                <div style="background: #e8f4f8; padding: 15px; border-radius: 10px; margin-top: 20px;"><strong>📌 Rangkuman:</strong> <span id="materi-rangkuman"></span></div>
+                
+                <div style="text-align: center; margin-top: 25px;">
+                    <button class="btn btn-primary" onclick="switchTab('lab')">➡️ Lanjutkan ke Laboratorium</button>
+                </div>
+            </div>
+
+            <!-- Tab Lab -->
+            <div id="tab-lab" class="tab-content">
+                <h3 id="lab-judul">Eksperimen</h3>
+                <p id="lab-instruksi" style="text-align: center; margin-bottom: 15px;"></p>
+                <div style="background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid var(--primary-blue);">
+                    <h4 style="color:var(--primary-blue); margin-bottom:10px;">🤔 Prediksi Detektif</h4>
+                    <strong>Alat & Bahan: </strong><span id="lab-alat"></span><br><br>
+                    <div id="lab-tanya-prediksi" style="font-weight:bold; margin-bottom:5px;">Apa yang akan terjadi menurutmu?</div>
+                    <select id="lab-prediksi" style="padding: 10px; width: 100%; border-radius: 5px; font-size: 1rem; border:2px solid var(--primary-blue);">
+                        <option value="">-- Buat Prediksimu Sebelum Memulai --</option>
+                        <option value="1" id="prediksi-1"></option>
+                        <option value="2" id="prediksi-2"></option>
+                    </select>
+                </div>
+                <div class="lab-container" id="lab-area"></div>
+                <div id="lab-kesimpulan-teks" style="margin-bottom:15px; font-weight:bold; color:var(--dark-blue); font-size:1.1rem; display:none; text-align:center; padding:15px; background:#d4edda; border-radius:10px;"></div>
+                <div style="text-align: center;"><button class="btn btn-success" id="btn-selesai-lab" onclick="selesaikanLab()">✅ Buat Kesimpulan Pembuktian</button></div>
+            </div>
+
+            <!-- Tab Game -->
+            <div id="tab-game" class="tab-content">
+                <h3 style="color: var(--orange);">🕵️‍♂️ Misi Detektif Cahaya</h3>
+                <p style="text-align:center; margin-bottom:20px;">Temukan sifat cahaya pada permasalahan di bawah ini!</p>
+                <div style="display: flex; gap: 20px; align-items: center; background: #fff3cd; padding: 20px; border-radius: 15px; border: 2px dashed var(--orange); flex-wrap:wrap;">
+                    <div style="font-size: 80px;" id="game-ilustrasi"></div>
+                    <div style="flex:1; min-width:250px;">
+                        <p style="font-size: 1.2rem; font-weight: bold; margin-bottom: 15px;" id="game-tanya"></p>
+                        <div id="game-opsi" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+                    </div>
+                </div>
+                <div id="game-feedback-container" style="display:none; margin-top:20px; padding:15px; border-radius:10px; text-align:center;">
+                    <h4 id="game-feedback-title" style="font-size: 1.3rem; margin-bottom:10px;"></h4>
+                    <p id="game-feedback-desc" style="font-size: 1.05rem; line-height:1.5; color:#333;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. GALERI FENOMENA -->
+    <div id="screen-galeri" class="screen">
+        <div class="dashboard-layout">
+            <div class="sidebar" id="sidebar-galeri"></div>
+            <div class="dash-content">
+                <h2>🖼️ Galeri Fenomena Cahaya</h2>
+                <p style="text-align:center; margin-bottom:20px; color:#555;">Amati fenomena cahaya di sekitar kita dan temukan hikmahnya.</p>
+                <div class="gallery-grid" id="galeri-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. TANTANGAN HOTS -->
+    <div id="screen-hots" class="screen">
+        <div class="dashboard-layout">
+            <div class="sidebar" id="sidebar-hots"></div>
+            <div class="dash-content" style="display:flex; flex-direction:column; align-items:center;">
+                <h2>🧠 Tantangan Berpikir Kritis (HOTS)</h2>
+                <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 100%; max-width: 700px; margin-top:20px;">
+                    <div style="text-align: right; font-weight: bold; margin-bottom: 20px; color: #777;">Tantangan <span id="hots-current-num">1</span> / 5</div>
+                    <div id="hots-question" style="font-size: 1.2rem; margin-bottom: 20px; color: var(--dark-blue); font-weight: bold; line-height:1.5;"></div>
+                    <div id="hots-options" style="display: flex; flex-direction:column; gap: 15px;"></div>
+                    <div id="hots-feedback" style="display:none; margin-top:20px; padding:15px; border-radius:10px; text-align:left; font-size:1rem; line-height:1.5; background:#e8f4f8; border-left:5px solid var(--primary-blue);"></div>
+                    <div style="text-align: right; margin-top: 20px;"><button class="btn btn-primary" id="btn-next-hots" style="display: none;" onclick="nextHots()">Tantangan Berikutnya ➔</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. KUIS EVALUASI -->
+    <div id="screen-quiz" class="screen">
+        <div class="content-area" style="display: flex; flex-direction:column; align-items: center; justify-content: center;">
+            <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 100%; max-width: 700px;">
+                <h2>Kuis Evaluasi</h2>
+                <div style="width: 100%; height: 10px; background: #ddd; border-radius: 5px; margin-bottom: 10px; overflow: hidden;"><div style="height: 100%; background: var(--primary-blue); width: 0%; transition: 0.3s;" id="quiz-progress"></div></div>
+                <div style="text-align: right; font-weight: bold; margin-bottom: 20px; color: #777;">Soal <span id="quiz-current-num">1</span> / 5</div>
+                
+                <div id="quiz-question" style="font-size: 1.3rem; margin-bottom: 20px; color: var(--dark-blue); font-weight: bold;"></div>
+                <div id="quiz-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
+                
+                <div id="quiz-feedback" style="display:none; margin-top:20px; padding:15px; border-radius:10px; text-align:center; font-weight:bold;"></div>
+                <div style="text-align: right; margin-top: 20px;"><button class="btn btn-primary" id="btn-next-quiz" style="display: none;" onclick="nextQuizSoal()">Selanjutnya ➔</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-quiz-result" class="screen">
+        <div class="content-area" style="display: flex; align-items: center; justify-content: center; text-align: center;">
+            <div class="welcome-card">
+                <h2>Hasil Evaluasi</h2>
+                <div style="font-size: 80px; margin: 10px 0;">🏆</div>
+                <div style="font-size: 1.5rem; margin-bottom: 10px;">Skor: <strong style="color: var(--orange); font-size: 2.5rem;" id="result-score">100</strong></div>
+                <p id="result-message" style="font-size: 1.2rem; margin-bottom: 20px;"></p>
+                <button class="btn btn-success" onclick="showScreen('screen-reflection')">Lanjut Refleksi Pembelajaran ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. REFLEKSI TERINTEGRASI -->
+    <div id="screen-reflection" class="screen">
+        <div class="content-area">
+            <h2>Refleksi Pembelajaran & Panca Cinta</h2>
+            <p style="text-align:center; margin-bottom:20px;">Tuliskan catatan dan komitmen belajarmu, Detektif!</p>
+            <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; border-left: 8px solid var(--primary-blue); box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <h3 style="color: var(--primary-blue); margin-bottom:15px; border-bottom:2px solid #eee; padding-bottom:10px; text-align:left;">Bagian 1: Pengalaman Belajar</h3>
+                <label style="font-weight:bold; color:var(--dark-blue); display:block; margin-bottom:5px;">1. Apa hal baru yang saya pelajari tentang sifat-sifat cahaya?</label>
+                <textarea class="refleksi-pengalaman-input textarea-custom" style="height:70px; margin-bottom:20px;" placeholder="Tulis jawabanmu..."></textarea>
+                <label style="font-weight:bold; color:var(--dark-blue); display:block; margin-bottom:5px;">2. Apa hasil percobaan laboratorium yang paling menarik bagi saya? Mengapa?</label>
+                <textarea class="refleksi-pengalaman-input textarea-custom" style="height:70px; margin-bottom:20px;" placeholder="Tulis jawabanmu..."></textarea>
+                <label style="font-weight:bold; color:var(--dark-blue); display:block; margin-bottom:5px;">3. Apa yang masih ingin saya ketahui tentang cahaya?</label>
+                <textarea class="refleksi-pengalaman-input textarea-custom" style="height:70px; margin-bottom:10px;" placeholder="Tulis jawabanmu..."></textarea>
+            </div>
+
+            <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; border-left: 8px solid var(--nature-green); box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <h3 style="color: var(--nature-green); margin-bottom:20px; border-bottom:2px solid #eee; padding-bottom:10px; text-align:left;">Bagian 2: Refleksi Panca Cinta</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background: #fdfdfd; padding: 15px; border-radius: 10px; border: 2px solid #eee;">
+                        <h4 style="color: var(--nature-green); text-align:left; margin-bottom:5px;">🕌 Cinta Allah & Rasul-Nya</h4>
+                        <p style="font-size:0.9rem; margin-bottom:10px;">Bagaimana caramu bersyukur atas nikmat cahaya dan penglihatan?</p>
+                        <textarea class="refleksi-akhir-input textarea-custom" style="height:60px;" placeholder="Tulis jawabanmu..."></textarea>
+                    </div>
+                    <div style="background: #fdfdfd; padding: 15px; border-radius: 10px; border: 2px solid #eee;">
+                        <h4 style="color: var(--primary-blue); text-align:left; margin-bottom:5px;">📚 Cinta Ilmu</h4>
+                        <p style="font-size:0.9rem; margin-bottom:10px;">Mengapa kita harus rajin bertanya dan membuktikan sesuatu?</p>
+                        <textarea class="refleksi-akhir-input textarea-custom" style="height:60px;" placeholder="Tulis jawabanmu..."></textarea>
+                    </div>
+                    <div style="background: #fdfdfd; padding: 15px; border-radius: 10px; border: 2px solid #eee;">
+                        <h4 style="color: var(--orange); text-align:left; margin-bottom:5px;">🌍 Cinta Lingkungan</h4>
+                        <p style="font-size:0.9rem; margin-bottom:10px;">Bagaimana caramu menggunakan energi cahaya secara bijak?</p>
+                        <textarea class="refleksi-akhir-input textarea-custom" style="height:60px;" placeholder="Tulis jawabanmu..."></textarea>
+                    </div>
+                    <div style="background: #fdfdfd; padding: 15px; border-radius: 10px; border: 2px solid #eee;">
+                        <h4 style="color: #e74c3c; text-align:left; margin-bottom:5px;">🇮🇩 Cinta Tanah Air</h4>
+                        <p style="font-size:0.9rem; margin-bottom:10px;">Bagaimana ilmu pengetahuan dapat membantu kemajuan bangsa kita?</p>
+                        <textarea class="refleksi-akhir-input textarea-custom" style="height:60px;" placeholder="Tulis jawabanmu..."></textarea>
+                    </div>
+                    <div style="background: #fdfdfd; padding: 15px; border-radius: 10px; border: 2px solid #eee; grid-column: span 2;">
+                        <h4 style="color: #b38f00; text-align:left; margin-bottom:5px;">🤝 Cinta Diri Sendiri & Sesama</h4>
+                        <p style="font-size:0.9rem; margin-bottom:10px;">Apa yang akan kamu lakukan untuk menjaga kesehatan mata dan membantu teman belajarmu?</p>
+                        <textarea class="refleksi-akhir-input textarea-custom" style="height:60px;" placeholder="Tulis jawabanmu..."></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding-bottom:30px;">
+                <button class="btn btn-primary" style="font-size:1.2rem; padding:15px 30px;" onclick="simpanRefleksiAkhir()">💾 Simpan Refleksi & Selesai Pembelajaran</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. DASHBOARD & LENCANA -->
+    <div id="screen-dashboard" class="screen">
+        <div class="dashboard-layout">
+            <div class="sidebar" id="sidebar-dash"></div>
+            <div class="dash-content">
+                <h2>📊 Progress Detektif Sains</h2>
+                <div style="background: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; border-left:5px solid var(--dark-blue);">
+                    <div>
+                        <div style="font-weight:bold; color:var(--dark-blue); font-size:1.1rem;" id="dash-nama-siswa">Nama Siswa</div>
+                        <div style="font-size:0.9rem; color:#555;">Kelas: <span id="dash-kelas-siswa"></span> | Wali Kelas: <span id="dash-walikelas-siswa"></span></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap:wrap;">
+                    <div class="stat-box" style="flex:1; background:white; padding:15px; border-radius:10px; border-left:5px solid var(--orange); box-shadow:0 4px 6px rgba(0,0,0,0.05);"><div style="color: #777;">Skor XP</div><div style="font-size: 2rem; color: var(--orange); font-weight:bold;" id="dash-skor">0</div></div>
+                    <div class="stat-box" style="flex:1; background:white; padding:15px; border-radius:10px; border-left:5px solid var(--primary-blue); box-shadow:0 4px 6px rgba(0,0,0,0.05);"><div style="color: #777;">Misi Selesai</div><div style="font-size: 2rem; color: var(--primary-blue); font-weight:bold;"><span id="dash-misi">0</span>/5</div></div>
+                    <div class="stat-box" style="flex:1; background:white; padding:15px; border-radius:10px; border-left:5px solid var(--nature-green); box-shadow:0 4px 6px rgba(0,0,0,0.05);"><div style="color: #777;">Bintang</div><div style="font-size: 2rem; color: var(--nature-green); font-weight:bold;" id="dash-bintang">0</div></div>
+                </div>
+
+                <div style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <h3 style="color:var(--dark-blue); margin-bottom:10px;">🏅 Lencana Pencapaian</h3>
+                    <div class="badge-container" id="badge-container"></div>
+                </div>
+
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="unduhLaporanPDF(state)">📄 Unduh Laporan PDF (Perkembangan Belajar)</button>
+                    <button class="btn btn-success" id="btn-lihat-sertifikat" style="display: none;" onclick="showScreen('screen-certificate')">🎓 Buka Sertifikat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. RUANG GURU -->
+    <div id="screen-guru" class="screen">
+        <div class="dashboard-layout">
+            <div class="sidebar" id="sidebar-guru"></div>
+            <div class="dash-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h2 style="margin:0;">👨‍🏫 Ruang Guru</h2>
+                    <button class="btn btn-info" style="padding:8px 15px; font-size:0.9rem;" onclick="bukaPengaturanGuru()">⚙️ Pengaturan Identitas</button>
+                </div>
+                
+                <div style="display:flex; gap:15px; margin-bottom:25px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:120px; background:white; padding:15px; border-radius:10px; text-align:center; border-bottom:4px solid var(--primary-blue); box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="font-size:2rem; font-weight:bold; color:var(--primary-blue);" id="rg-total">0</div>
+                        <div style="font-size:0.8rem; color:#777; font-weight:bold;">Total Murid</div>
+                    </div>
+                    <div style="flex:1; min-width:120px; background:white; padding:15px; border-radius:10px; text-align:center; border-bottom:4px solid var(--nature-green); box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="font-size:2rem; font-weight:bold; color:var(--nature-green);" id="rg-misi">0</div>
+                        <div style="font-size:0.8rem; color:#777; font-weight:bold;">Selesai Seluruh Misi</div>
+                    </div>
+                    <div style="flex:1; min-width:120px; background:white; padding:15px; border-radius:10px; text-align:center; border-bottom:4px solid var(--bright-yellow); box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="font-size:2rem; font-weight:bold; color:#d35400;" id="rg-lab">0</div>
+                        <div style="font-size:0.8rem; color:#777; font-weight:bold;">Selesai Praktik Lab</div>
+                    </div>
+                    <div style="flex:1; min-width:120px; background:white; padding:15px; border-radius:10px; text-align:center; border-bottom:4px solid #9b59b6; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="font-size:2rem; font-weight:bold; color:#8e44ad;" id="rg-kuis">0</div>
+                        <div style="font-size:0.8rem; color:#777; font-weight:bold;">Rata-Rata Kuis</div>
+                    </div>
+                    <div style="flex:1; min-width:120px; background:white; padding:15px; border-radius:10px; text-align:center; border-bottom:4px solid var(--orange); box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="font-size:2rem; font-weight:bold; color:var(--orange);" id="rg-bimbing">0</div>
+                        <div style="font-size:0.8rem; color:#777; font-weight:bold;">Perlu Pendampingan</div>
+                    </div>
+                </div>
+
+                <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+                    <h3 style="color:var(--dark-blue); margin-bottom:15px; text-align:left;">Rekapitulasi Perkembangan Murid</h3>
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <input type="text" id="rg-cari" placeholder="Cari Nama Murid..." style="padding:10px; border-radius:5px; border:1px solid #ccc; flex:1;" onkeyup="filterTabelGuru()">
+                        <select id="rg-filter-kelas" style="padding:10px; border-radius:5px; border:1px solid #ccc;" onchange="filterTabelGuru()">
+                            <option value="">Semua Kelas</option>
+                            <option value="V A">V A</option>
+                            <option value="V B">V B</option>
+                            <option value="V C">V C</option>
+                            <option value="V D">V D</option>
+                            <option value="V E">V E</option>
+                        </select>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="table-guru" id="table-guru-data">
+                            <thead><tr>
+                                <th>No.</th><th>Nama Murid</th><th>Kelas</th><th>Skor XP</th><th>Misi Selesai</th><th>Nilai Kuis</th><th>Lencana</th><th>Aksi</th>
+                            </tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div style="margin-top:20px; display:flex; gap:15px;">
+                    <button class="btn btn-success" onclick="eksporCSV()">📥 Ekspor Data (CSV)</button>
+                    <button class="btn btn-danger" onclick="resetSemuaSiswaData()">⚠️ Hapus Semua Data Siswa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. SERTIFIKAT -->
+    <div id="screen-certificate" class="screen">
+        <div class="content-area" style="display: flex; flex-direction: column; align-items: center; background: white;">
+            <div class="cert-buttons" style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <button class="btn" onclick="showScreen('screen-dashboard')">⬅ Kembali</button>
+                <button class="btn btn-primary" onclick="unduhSertifikatPDF()">📥 UNDUH SERTIFIKAT PDF</button>
+            </div>
+            
+            <div id="sertifikat-container">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <img id="cert-logo" src="https://iili.io/n8c9lgR.png" alt="Logo" style="height:80px; width:80px; object-fit:contain;" crossorigin="anonymous" onerror="this.src='https://placehold.co/80x80/ffffff/000000?text=Logo'">
+                        <div style="text-align:left; font-weight:bold; color:var(--dark-blue);">
+                            <div id="cert-nama-madrasah" style="font-size:1.4rem; text-transform:uppercase;">NAMA MADRASAH</div>
+                        </div>
+                    </div>
+                    <div style="font-weight:bold; color:#d35400; text-align:right;">
+                        <div style="font-size:1.4rem;">CAHAYA EXPLORER</div>
+                        <div style="font-size:1rem;">Misi Detektif Cahaya</div>
+                    </div>
+                </div>
+                
+                <h1 style="font-size: 3.2rem; color: var(--primary-blue); text-transform: uppercase; margin:20px 0; letter-spacing:2px;">SERTIFIKAT PENGHARGAAN</h1>
+                <p style="font-size: 1.3rem; font-weight: bold; color:#555;">Diberikan dengan bangga kepada:</p>
+                
+                <div id="cert-nama" style="font-size: 3.5rem; color: var(--orange); font-family: 'Brush Script MT', cursive; border-bottom: 2px solid var(--primary-blue); display: inline-block; padding: 0 40px; margin: 15px 0; max-width: 95%; word-wrap: break-word; line-height: 1.2;" title="Nama Siswa">Nama Siswa</div>
+                
+                <p style="font-size: 1.3rem; font-weight:bold; color:#555; margin-bottom:15px;">Kelas: <span id="cert-kelas"></span></p>
+
+                <p style="font-size: 1.2rem; max-width: 650px; margin: 15px auto; line-height: 1.6; color:#333;">
+                    Telah menyelesaikan seluruh tahapan pembelajaran interaktif <strong>"Sifat-Sifat Cahaya"</strong> meliputi pemahaman konsep, observasi eksperimen laboratorium, penerapan HOTS, dan evaluasi dengan predikat <strong id="cert-predikat" style="color: var(--orange); font-size:1.4rem;">SANGAT BAIK</strong>.
+                </p>
+                
+                <div style="display:flex; justify-content:flex-end; margin-top: 20px; font-weight: bold; color:#333; padding:0 40px;">
+                    <div style="text-align: center; min-width: 250px;">
+                        <p style="font-size: 1.1rem;">Tanggal: <span id="cert-tanggal"></span></p>
+                        <div style="height:70px;"></div>
+                        <p style="font-size: 1.1rem; margin-top: 5px;">Wali Kelas</p>
+                        <p id="cert-walikelas" style="color:var(--dark-blue); text-decoration:underline; font-size: 1.2rem; font-weight:bold;">Nama Wali Kelas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MASCOT ANIMATION CONTAINER -->
+    <div id="mascot-container">
+        <div class="mascot-bubble" id="mascot-text">Halo! Ayo semangat!</div>
+        <div class="mascot-char" id="mascot-emoji">🕵️‍♂️</div>
+    </div>
+
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-login">
+    <div class="modal-content">
+        <h2 style="color: var(--primary-blue);">Selamat Datang!</h2>
+        <p style="margin-bottom:15px; font-size:0.9rem;">Lengkapi identitasmu untuk memulai petualangan.</p>
+        
+        <input type="text" id="input-nama" placeholder="Nama Lengkap Siswa" maxlength="40">
+        <input type="text" id="input-kelas" list="opsi-kelas" placeholder="Kelas (Pilih atau Ketik manual)">
+        <datalist id="opsi-kelas">
+            <option value="V A">
+            <option value="V B">
+            <option value="V C">
+            <option value="V D">
+            <option value="V E">
+        </datalist>
+
+        <input type="text" id="input-walikelas" placeholder="Nama Wali Kelas" maxlength="50" style="margin-bottom:20px;">
+        
+        <button class="btn btn-primary" style="width:100%;" onclick="mulaiAplikasi()">Mulai Petualangan!</button>
+        <button class="btn" style="width:100%; margin-top:10px; background:#ddd;" onclick="document.getElementById('modal-login').style.display='none'">Batal</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-alert">
+    <div class="modal-content">
+        <h2 style="color: var(--orange); margin-bottom:15px;">Informasi</h2>
+        <p id="alert-msg" style="margin-bottom: 20px; font-size:1.1rem;"></p>
+        <button class="btn btn-primary" onclick="tutupPesan()">OK, Mengerti</button>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Kustom untuk menggantikan confirm/prompt bawaan -->
+<div class="modal-overlay" id="modal-konfirmasi">
+    <div class="modal-content" style="border-color:var(--orange);">
+        <h2 style="color: var(--orange); margin-bottom:15px;">Konfirmasi</h2>
+        <p id="konfirmasi-msg" style="margin-bottom: 20px; font-size:1.1rem;"></p>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-danger" id="btn-konfirmasi-ya" style="flex:1;">Ya, Lanjutkan</button>
+            <button class="btn" style="flex:1; background:#ddd;" onclick="document.getElementById('modal-konfirmasi').style.display='none'">Batal</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-pembuktian">
+    <div class="modal-content" style="border-color:var(--nature-green);">
+        <h2 style="color: var(--nature-green); margin-bottom:10px;">🧪 Hasil Pembuktian!</h2>
+        <div id="pembuktian-status" style="font-size:1.2rem; font-weight:bold; margin-bottom:15px;"></div>
+        <div id="pembuktian-penjelasan" style="font-size:1rem; line-height:1.5; color:#444; background:#e8f4f8; padding:15px; border-radius:10px; margin-bottom:20px; text-align:left;"></div>
+        <button class="btn btn-success" style="width:100%;" onclick="tutupPembuktianLanjut()">Lanjutkan Misi Detektif ➔</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-galeri">
+    <div class="modal-content" style="max-width: 600px;">
+        <h2 id="modal-galeri-title" style="color: var(--primary-blue); margin-bottom:15px;">Judul</h2>
+        <div id="modal-galeri-content" style="font-size:1rem; line-height:1.6; text-align:left; background:#f4f6f7; padding:20px; border-radius:10px; margin-bottom:20px;"></div>
+        <button class="btn btn-primary" onclick="document.getElementById('modal-galeri').style.display='none'; playClick();">Tutup</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-pin-guru">
+    <div class="modal-content" style="max-width: 400px; border-color:var(--dark-blue);">
+        <h2 style="color: var(--dark-blue); margin-bottom:15px;">Akses Ruang Guru</h2>
+        <p style="margin-bottom:15px;">Masukkan PIN (Bawaan: 1234)</p>
+        <input type="password" id="input-pin" placeholder="Masukkan PIN" style="text-align:center; font-size:1.5rem; letter-spacing:5px;" maxlength="6">
+        <button class="btn btn-primary" style="width:100%; margin-bottom:10px;" onclick="verifikasiPIN()">Masuk</button>
+        <button class="btn" style="width:100%; background:#ddd;" onclick="document.getElementById('modal-pin-guru').style.display='none'">Batal</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-pengaturan-guru">
+    <div class="modal-content" style="max-width: 550px; border-color:var(--orange);">
+        <h2 style="color: var(--orange); margin-bottom:15px;">Pengaturan Identitas Madrasah & Guru</h2>
+        <p style="margin-bottom:15px; font-size:0.85rem;">Data ini digunakan pada Laporan. Progres belajar murid aman dan tidak akan terhapus saat Anda mengubah identitas.</p>
+        
+        <div style="text-align:left; margin-bottom:15px;">
+            <label style="font-weight:bold; font-size:0.9rem;">PIN Ruang Guru Baru:</label>
+            <input type="text" id="set-pin" placeholder="1234" maxlength="6" style="margin-top:5px; margin-bottom:10px;">
+            
+            <label style="font-weight:bold; font-size:0.9rem;">Nama Guru (Pengelola / Mata Pelajaran):</label>
+            <input type="text" id="set-guru" placeholder="Nama Guru beserta Gelar" style="margin-top:5px; margin-bottom:10px;">
+            
+            <label style="font-weight:bold; font-size:0.9rem;">Nama Sekolah / Madrasah:</label>
+            <input type="text" id="set-sekolah" placeholder="Nama Sekolah" style="margin-top:5px; margin-bottom:15px;">
+            
+            <div style="background:#f4f6f7; padding:15px; border-radius:10px; border:1px solid #ccc;">
+                <label style="font-weight:bold; font-size:0.9rem; display:block; margin-bottom:10px;">Pengaturan Logo Madrasah:</label>
+                <label style="font-size:0.85rem; display:block; margin-bottom:5px;">Opsi 1: Unggah dari Komputer (PNG/JPG)</label>
+                <input type="file" id="set-logo-file" accept="image/png, image/jpeg, image/jpg" onchange="previewLogoFile(event)" style="margin-bottom:10px; padding:5px;">
+                <label style="font-size:0.85rem; display:block; margin-bottom:5px;">Opsi 2: Masukkan URL Gambar</label>
+                <input type="url" id="set-logo-url" placeholder="https://..." oninput="previewLogoUrl()" style="margin-bottom:15px;">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <div style="width:70px; height:70px; border:2px dashed #999; border-radius:10px; display:flex; justify-content:center; align-items:center; background:white; overflow:hidden;">
+                        <img id="preview-logo-img" src="https://iili.io/n8c9lgR.png" style="max-width:100%; max-height:100%; object-fit:contain;" alt="Pratinjau">
+                    </div>
+                    <button class="btn btn-danger" style="font-size:0.8rem; padding:8px 12px;" onclick="resetLogoDefault()">🔄 Kembalikan Logo Bawaan</button>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-success" style="width:100%; margin-bottom:10px;" onclick="simpanPengaturanGuru()">💾 Simpan Pengaturan</button>
+        <button class="btn" style="width:100%; background:#ddd;" onclick="document.getElementById('modal-pengaturan-guru').style.display='none'">Batal</button>
+    </div>
+</div>
+
+<!-- JAVASCRIPT -->
+<script>
+    // --- UTILITIES ---
+    const escapeHTML = (str) => { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])); };
+
+    // --- INTEGRASI GOOGLE APPS SCRIPT (GAS) ---
+    // GANTI TAUTAN INI DENGAN URL WEB APP GAS ANDA SETELAH DEPLOYMENT 
+    const GAS_URL = "URL_GAS_ANDA_DISINI"; 
+    
+    // --- PENGATURAN GURU & IDENTITAS ---
+    let pengaturanGuru = JSON.parse(localStorage.getItem('cahayaPengaturanGuru')) || { pin: "1234", sekolah: "MIN 1 Kota Gorontalo", guru: "Cindrianingsih Mahajani, S.Pd", logo: "https://iili.io/n8c9lgR.png" };
+    let tempLogoBase64 = "";
+
+    function previewLogoFile(event) {
+        let file = event.target.files[0];
+        if(file) {
+            let reader = new FileReader();
+            reader.onload = function(e) { tempLogoBase64 = e.target.result; document.getElementById('preview-logo-img').src = tempLogoBase64; document.getElementById('set-logo-url').value = ""; }
+            reader.readAsDataURL(file);
+        }
+    }
+    function previewLogoUrl() {
+        let url = document.getElementById('set-logo-url').value;
+        if(url) { document.getElementById('preview-logo-img').src = url; tempLogoBase64 = ""; document.getElementById('set-logo-file').value = ""; }
+    }
+    function resetLogoDefault() {
+        tempLogoBase64 = ""; document.getElementById('set-logo-url').value = ""; document.getElementById('set-logo-file').value = ""; document.getElementById('preview-logo-img').src = "https://iili.io/n8c9lgR.png"; 
+    }
+    function simpanPengaturanGuru() {
+        playClick();
+        let npin = document.getElementById('set-pin').value.trim(); let nguru = document.getElementById('set-guru').value.trim(); let nsek = document.getElementById('set-sekolah').value.trim();
+        let finalLogo = "https://iili.io/n8c9lgR.png";
+        if (tempLogoBase64) finalLogo = tempLogoBase64; else if (document.getElementById('set-logo-url').value.trim()) finalLogo = document.getElementById('set-logo-url').value.trim();
+        if(!npin || !nguru || !nsek) { tampilkanPesan("PIN, Nama Guru, dan Sekolah/Madrasah wajib diisi!"); return; }
+        
+        pengaturanGuru = { pin: npin, guru: nguru, sekolah: nsek, logo: finalLogo };
+        localStorage.setItem('cahayaPengaturanGuru', JSON.stringify(pengaturanGuru));
+        terapkanIdentitasKeUI(); document.getElementById('modal-pengaturan-guru').style.display='none'; tampilkanPesan("Pengaturan berhasil disimpan.");
+    }
+
+    function terapkanIdentitasKeUI() {
+        document.getElementById('home-guru-name').innerText = escapeHTML(pengaturanGuru.guru);
+        document.getElementById('home-school-name').innerText = escapeHTML(pengaturanGuru.sekolah);
+        document.getElementById('home-school-logo').src = pengaturanGuru.logo;
+        document.getElementById('welcome-logo').src = pengaturanGuru.logo;
+        
+        const certMadrasah = document.getElementById('cert-nama-madrasah'); if(certMadrasah) certMadrasah.innerText = escapeHTML(pengaturanGuru.sekolah);
+        const certLogo = document.getElementById('cert-logo'); if(certLogo) certLogo.src = pengaturanGuru.logo;
+    }
+    function bukaPengaturanGuru() {
+        playClick(); document.getElementById('set-pin').value = pengaturanGuru.pin; document.getElementById('set-guru').value = pengaturanGuru.guru; document.getElementById('set-sekolah').value = pengaturanGuru.sekolah;
+        let logo = pengaturanGuru.logo; document.getElementById('preview-logo-img').src = logo; tempLogoBase64 = ""; document.getElementById('set-logo-file').value = "";
+        if (logo.startsWith('data:image')) { tempLogoBase64 = logo; document.getElementById('set-logo-url').value = ""; } else { document.getElementById('set-logo-url').value = logo === "https://iili.io/n8c9lgR.png" ? "" : logo; }
+        document.getElementById('modal-pengaturan-guru').style.display = 'flex';
+    }
+
+    // --- AUDIO SYSTEM ---
+    let audioCtx; let bgmOsc = null, bgmGain = null; let isBGMOn = true, isSFXOn = true; let currentTheme = 'adventure'; 
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    function playTone(freq, type, duration, vol=0.1) {
+        if(!isSFXOn) return; initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime); gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration); osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+    function playClick() { playTone(600, 'sine', 0.1, 0.05); }
+    function playSuccess() { playTone(800, 'triangle', 0.1); setTimeout(()=>playTone(1200, 'triangle', 0.2), 100); }
+    function playWrong() { playTone(200, 'sawtooth', 0.3); }
+    function playSparkle() { [800, 1000, 1200, 1500].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.1, 0.05), i*100)); }
+    function playFanfare() { playTone(400, 'square', 0.2); setTimeout(()=>playTone(500, 'square', 0.2), 200); setTimeout(()=>playTone(600, 'square', 0.4), 400); setTimeout(()=>playTone(800, 'square', 0.6), 800); }
+    function startBGM(theme) {
+        if(!isBGMOn) return; initAudio(); stopBGM(); currentTheme = theme; bgmOsc = audioCtx.createOscillator(); bgmGain = audioCtx.createGain();
+        let freq = 200, type = 'sine'; if(theme === 'adventure') { freq = 261.63; type = 'triangle'; } else if(theme === 'lab') { freq = 196.00; type = 'sine'; } else if(theme === 'quiz') { freq = 329.63; type = 'square'; } 
+        bgmOsc.type = type; bgmOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.5; const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 10;
+        lfo.connect(lfoGain); lfoGain.connect(bgmOsc.frequency); lfo.start();
+        bgmGain.gain.value = 0.02; bgmOsc.connect(bgmGain); bgmGain.connect(audioCtx.destination); bgmOsc.start();
+    }
+    function stopBGM() { if(bgmOsc) { bgmOsc.stop(); bgmOsc.disconnect(); bgmOsc = null; } }
+    function toggleBGM() { isBGMOn = !isBGMOn; document.getElementById('btn-bgm').innerText = isBGMOn ? "🎵 BGM: ON" : "🎵 BGM: OFF"; if(isBGMOn) startBGM(currentTheme); else stopBGM(); playClick(); }
+    function toggleSFX() { isSFXOn = !isSFXOn; document.getElementById('btn-sfx').innerText = isSFXOn ? "🔊 SFX: ON" : "🔊 SFX: OFF"; playClick(); }
+
+    // --- MASCOT & UI UTILS ---
+    let mascotTimeout;
+    function showMascot(text, animClass, duration=3000) {
+        const mc = document.getElementById('mascot-container'); const me = document.getElementById('mascot-emoji');
+        document.getElementById('mascot-text').innerText = text; me.className = `mascot-char ${animClass}`; mc.classList.add('show');
+        clearTimeout(mascotTimeout); mascotTimeout = setTimeout(() => { mc.classList.remove('show'); me.className = 'mascot-char'; }, duration);
+    }
+    function shootConfetti() {
+        for(let i=0; i<50; i++) {
+            let c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random()*100+'vw';
+            c.style.backgroundColor = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71'][Math.floor(Math.random()*4)];
+            c.style.animationDuration = (Math.random()*2+2)+'s'; document.body.appendChild(c); setTimeout(()=>c.remove(), 4000);
+        }
+    }
+    
+    function tampilkanPesan(msg) { playClick(); document.getElementById('alert-msg').innerText = msg; document.getElementById('modal-alert').style.display = 'flex'; }
+    function tutupPesan() { playClick(); document.getElementById('modal-alert').style.display = 'none'; }
+
+    function tampilkanKonfirmasi(msg, onConfirm) {
+        playClick();
+        document.getElementById('konfirmasi-msg').innerText = msg;
+        document.getElementById('modal-konfirmasi').style.display = 'flex';
+        let btnYa = document.getElementById('btn-konfirmasi-ya');
+        btnYa.onclick = function() {
+            playClick();
+            document.getElementById('modal-konfirmasi').style.display = 'none';
+            if (onConfirm) onConfirm();
+        };
+    }
+
+    // --- DATA STATE MASTER ---
+    let state = { nama: "", kelas: "", waliKelas: "", skor: 0, bintang: 0, misiUnlocked: 1, misiSelesai: [], kuisHistory: [], refleksiSelesai: false, renunganMisi: {}, labSelesaiArr: [], detektifSelesaiArr: [], hotsSelesai: 0, jurnalData: ["","",""], refleksiData: ["","","","",""] };
+    
+    // --- DATABASE MISI ---
+    const missions = [
+        { 
+            id: 1, title: "Cahaya Merambat Lurus", icon: "🔦", desc: "Cahaya selalu bergerak dalam garis lurus jika berada dalam medium (perantara) yang sama.", fakta: "Cahaya matahari butuh waktu 8 menit untuk sampai ke bumi secara lurus!", rangkuman: "Sifat cahaya yang pertama adalah merambat lurus.", fenomena: { isi: "<ul><li>Sinar matahari masuk celah jendela.</li><li>Cahaya senter di tempat gelap.</li></ul>", aktivitas: "▶ Aktivitas: Amati arah cahaya senter!" }, quran: { arab: "وَجَعَلْنَا سِرَاجًا وَهَّاجًا", surah: "QS. An-Naba' [78]: 13", arti: "\"Dan Kami jadikan pelita yang amat terang (matahari).\"", pesan: "Matahari menerangi bumi secara langsung." }, cinta: "🌱 Cinta Lingkungan", refleksi: "Apa bukti kebesaran Allah tentang cahaya lurus?",
+            lab: { judul: "Misi Detektif – Rahasia Tiga Lubang", instruksi: "Geser papan untuk mengatur posisi lubang agar cahaya bisa mencapai layar.", alat: "Senter, Tiga Papan Berlubang, Layar Pengamatan", prediksi1: "Cahaya menembus jika semua lubang sejajar", prediksi2: "Cahaya akan berbelok melewati lubang", jawPrediksi: "1", penjelasan: "Ketika ketiga lubang berada pada satu garis lurus, cahaya dapat melewatinya dan mencapai layar. Ketika salah satu lubang tidak sejajar, cahaya terhalang oleh papan. Hal ini menunjukkan bahwa cahaya merambat lurus.",
+                html: `<div style="display:flex; flex-direction:column; gap:15px; width:100%; align-items:center;">
+                    <div style="position:relative; width:350px; height:200px; background:#2c3e50; border-radius:10px; overflow:hidden; border:3px solid #7f8c8d;">
+                        <div style="position:absolute; left:10px; top:84px; cursor:pointer;" onclick="toggleSenter1()">
+                            <svg width="40" height="30" viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="8" width="20" height="14" rx="2" fill="#7f8c8d" /><polygon points="20,8 30,2 30,28 20,22" fill="#95a5a6" /><line x1="30" y1="2" x2="30" y2="28" stroke="#f1c40f" stroke-width="2" /></svg>
+                        </div>
+                        <div id="lab1-sinar-container" style="position:absolute; left:40px; top:95px; width:0; height:8px; background:yellow; box-shadow:0 0 10px yellow; transition:width 0.2s;"></div>
+                        <div id="lab1-p1" style="position:absolute; left:100px; top:50px; width:15px; height:100px; background:#8b4513;"><div style="position:absolute; top:40px; left:0; width:15px; height:18px; background:#2c3e50;"></div></div>
+                        <div id="lab1-p2" style="position:absolute; left:170px; top:50px; width:15px; height:100px; background:#8b4513;"><div style="position:absolute; top:40px; left:0; width:15px; height:18px; background:#2c3e50;"></div></div>
+                        <div id="lab1-p3" style="position:absolute; left:240px; top:50px; width:15px; height:100px; background:#8b4513;"><div style="position:absolute; top:40px; left:0; width:15px; height:18px; background:#2c3e50;"></div></div>
+                        <div style="position:absolute; right:20px; top:20px; width:10px; height:160px; background:#bdc3c7;"></div>
+                        <div id="lab1-cahaya-layar" style="position:absolute; right:10px; top:85px; width:20px; height:28px; background:yellow; border-radius:50%; opacity:0; box-shadow:0 0 20px yellow, 0 0 40px yellow; transition:opacity 0.2s;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
+                        <div style="display:flex; flex-direction:column; align-items:center;"><label style="font-size:0.9rem;">Papan 1</label><input type="range" id="lab1-s1" min="-30" max="30" value="0" oninput="updateLab1()" style="width:80px;"></div>
+                        <div style="display:flex; flex-direction:column; align-items:center;"><label style="font-size:0.9rem;">Papan 2</label><input type="range" id="lab1-s2" min="-30" max="30" value="0" oninput="updateLab1()" style="width:80px;"></div>
+                        <div style="display:flex; flex-direction:column; align-items:center;"><label style="font-size:0.9rem;">Papan 3</label><input type="range" id="lab1-s3" min="-30" max="30" value="0" oninput="updateLab1()" style="width:80px;"></div>
+                    </div>
+                    <div style="display:flex; gap:10px;"><button class="btn btn-primary" onclick="toggleSenter1()">🔌 Nyalakan/Matikan</button><button class="btn btn-info" onclick="setSejajarLab1()">📏 Buat Sejajar</button></div>
+                </div>`,
+                js: `window.senter1On = false; window.toggleSenter1 = function() { window.senter1On = !window.senter1On; if(window.senter1On) playClick(); updateLab1(); }; window.updateLab1 = function() { let v1 = parseInt(document.getElementById('lab1-s1').value); let v2 = parseInt(document.getElementById('lab1-s2').value); let v3 = parseInt(document.getElementById('lab1-s3').value); document.getElementById('lab1-p1').style.top = (50 + v1) + 'px'; document.getElementById('lab1-p2').style.top = (50 + v2) + 'px'; document.getElementById('lab1-p3').style.top = (50 + v3) + 'px'; if(!window.senter1On) { document.getElementById('lab1-sinar-container').style.width = '0px'; document.getElementById('lab1-cahaya-layar').style.opacity = '0'; return; } let blockedAt = 280; if(Math.abs(v1) > 8) blockedAt = 60; else if(Math.abs(v2) > 8) blockedAt = 130; else if(Math.abs(v3) > 8) blockedAt = 200; else blockedAt = 280; document.getElementById('lab1-sinar-container').style.width = blockedAt + 'px'; if(blockedAt === 280) { document.getElementById('lab1-cahaya-layar').style.opacity = '1'; document.getElementById('lab-kesimpulan-teks').style.display='block'; document.getElementById('lab-kesimpulan-teks').innerText = "Hasil: Cahaya mencapai layar saat lubang sejajar."; } else { document.getElementById('lab1-cahaya-layar').style.opacity = '0'; document.getElementById('lab-kesimpulan-teks').style.display='block'; document.getElementById('lab-kesimpulan-teks').innerText = "Hasil: Cahaya terhalang karena lubang tidak sejajar."; } }; window.setSejajarLab1 = function() { playClick(); document.getElementById('lab1-s1').value = 0; document.getElementById('lab1-s2').value = 0; document.getElementById('lab1-s3').value = 0; window.senter1On = true; updateLab1(); }`
+            }, 
+            game: { ilustrasi: "👥", tanya: "Mengapa bayangan tubuhmu terbentuk di tanah ketika siang hari terkena cahaya matahari?", opsi: [{teks:"Tubuh memancarkan cahaya gelap", benar:false}, {teks:"Cahaya merambat lurus dan terhalang tubuh kita (benda gelap)", benar:true}], penjelasan:"Cahaya matahari merambat lurus. Saat menabrak tubuh kita, area di belakang kita tidak mendapat cahaya, terbentuklah bayangan gelap." } 
+        },
+        { 
+            id: 2, title: "Menembus Benda Bening", icon: "🥛", desc: "Cahaya dapat melewati benda yang bening (transparan) dengan sempurna.", fakta: "Kaca jendela membiarkan cahaya masuk ke rumahmu sehingga terang saat siang.", rangkuman: "Benda bening dapat ditembus cahaya, sedangkan benda gelap (opak) menghalanginya.", fenomena: { isi: "<ul><li>Cahaya masuk melalui kaca jendela.</li><li>Kita dapat melihat ikan di akuarium.</li></ul>", aktivitas: "▶ Aktivitas: Kelompokkan benda bening dan gelap!" }, quran: { arab: "۞ ٱللَّهُ نُورُ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ...", surah: "QS. An-Nur [24]: 35", arti: "\"Allah (Pemberi) cahaya...\"", pesan: "Cahaya petunjuk Allah meresap ke hati yang jernih." }, cinta: "❤️ Cinta Allah & Rasul-Nya", refleksi: "Bagaimana menjaga hati agar 'bening' menerima nasehat?",
+            lab: { judul: "Misi Detektif – Benda Mana yang Dapat Ditembus Cahaya?", instruksi: "Bandingkan kemampuan cahaya melewati benda transparan, translusen, dan opak.", alat: "Senter, Kaca Bening, Plastik Buram, Kayu, Layar", prediksi1: "Semua benda meneruskan cahaya", prediksi2: "Hanya kaca yang meneruskan sebagian besar cahaya", jawPrediksi: "2", penjelasan: "Benda transparan meneruskan cahaya secara sempurna. Benda translusen meneruskan sebagian. Benda opak menghalanginya.",
+                html: `<div style="display:flex; flex-direction:column; gap:15px; width:100%; align-items:center;">
+                    <div style="position:relative; width:400px; height:200px; background:#2c3e50; border-radius:10px; overflow:hidden; border:3px solid #7f8c8d;">
+                        <div style="position:absolute; left:10px; top:85px; z-index:5;">
+                            <svg width="40" height="30" viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="8" width="20" height="14" rx="2" fill="#7f8c8d" /><polygon points="20,8 30,2 30,28 20,22" fill="#95a5a6" /><line x1="30" y1="2" x2="30" y2="28" stroke="#f1c40f" stroke-width="2" /></svg>
+                        </div>
+                        <div id="lab2-sinar-in" style="position:absolute; left:40px; top:95px; width:0; height:10px; background:yellow; transition:width 0.3s;"></div>
+                        <div id="lab2-hamburan" style="position:absolute; left:180px; top:40px; width:0; height:120px; background:radial-gradient(ellipse at left, rgba(255,255,0,0.6) 0%, transparent 100%); opacity:0; transition:0.3s; pointer-events:none; z-index:3;"></div>
+                        <div id="lab2-tembusan" style="position:absolute; left:180px; top:95px; width:0; height:10px; background:yellow; opacity:0; transition:0.3s; z-index:3;"></div>
+                        <div id="lab2-bayangan" style="position:absolute; left:180px; top:20px; width:220px; height:160px; background:rgba(0,0,0,0.8); opacity:0; transition:0.3s; z-index:4;"></div>
+                        <div id="lab2-benda" style="position:absolute; left:150px; top:20px; width:30px; height:160px; background:transparent; border:2px dashed #95a5a6; display:flex; align-items:center; justify-content:center; color:white; writing-mode:vertical-rl; font-size:12px; font-weight:bold; z-index:4;">Pilih Benda</div>
+                        <div style="position:absolute; right:30px; top:75px; font-size:40px; background:white; border-radius:10px; padding:5px; z-index:1;">🍎</div>
+                        <div id="lab2-blur" style="position:absolute; right:30px; top:75px; width:50px; height:50px; backdrop-filter:blur(0px); background:rgba(255,255,255,0); transition:0.3s; z-index:2; border-radius:10px;"></div>
+                    </div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+                        <button class="btn btn-info" onclick="ujiBenda2('transparan')">🪟 Kaca</button>
+                        <button class="btn btn-primary" onclick="ujiBenda2('translusen')">🛍️ Plastik Buram</button>
+                        <button class="btn btn-danger" onclick="ujiBenda2('opak')">🚪 Kayu</button>
+                    </div>
+                </div>`,
+                js: `window.ujiBenda2 = function(jenis) { playClick(); let sinarIn = document.getElementById('lab2-sinar-in'); let tembusan = document.getElementById('lab2-tembusan'); let hamburan = document.getElementById('lab2-hamburan'); let bayangan = document.getElementById('lab2-bayangan'); let blur = document.getElementById('lab2-blur'); let benda = document.getElementById('lab2-benda'); sinarIn.style.width = '110px'; document.getElementById('lab-kesimpulan-teks').style.display='block'; if(jenis === 'transparan') { benda.style.background = 'rgba(173, 216, 230, 0.4)'; benda.innerText = 'Kaca'; tembusan.style.width = '180px'; tembusan.style.opacity = '1'; hamburan.style.opacity = '0'; bayangan.style.opacity = '0'; blur.style.backdropFilter = 'blur(0px)'; document.getElementById('lab-kesimpulan-teks').innerText = "Hasil: Kaca meneruskan cahaya."; } else if(jenis === 'translusen') { benda.style.background = 'rgba(236, 240, 241, 0.7)'; benda.innerText = 'Plastik'; tembusan.style.width = '0px'; tembusan.style.opacity = '0'; hamburan.style.width = '150px'; hamburan.style.opacity = '1'; bayangan.style.opacity = '0'; blur.style.backdropFilter = 'blur(4px)'; document.getElementById('lab-kesimpulan-teks').innerText = "Hasil: Plastik menghamburkan sebagian cahaya."; } else if(jenis === 'opak') { benda.style.background = '#8b4513'; benda.innerText = 'Kayu'; tembusan.style.width = '0px'; tembusan.style.opacity = '0'; hamburan.style.opacity = '0'; bayangan.style.opacity = '1'; document.getElementById('lab-kesimpulan-teks').innerText = "Hasil: Kayu memblokir cahaya."; } }`
+            }, 
+            game: { ilustrasi: "👓", tanya: "Mengapa kita dapat melihat pemandangan melalui kaca jendela dengan jelas?", opsi: [{teks:"Karena kaca memantulkan bayangan", benar:false}, {teks:"Karena kaca meneruskan cahaya secara sempurna", benar:true}], penjelasan:"Kaca adalah benda transparan yang meneruskan cahaya sehingga kita bisa melihat objek di belakangnya dengan jelas." } 
+        },
+        { 
+            id: 3, title: "Cahaya Dipantulkan", icon: "🪞", desc: "Cahaya akan memantul (berbalik arah) ketika mengenai permukaan benda yang mengkilap atau rata.", fakta: "Kamu bisa melihat wajahmu di cermin karena ia memantulkan cahaya dari wajahmu.", rangkuman: "Permukaan halus memantulkan cahaya teratur.", fenomena: { isi: "<ul><li>Wajah terlihat di cermin.</li><li>Spion kendaraan bermotor.</li></ul>", aktivitas: "▶ Aktivitas: Gunakan cermin dan ubah arah pantulan senter!" }, quran: { arab: "هُوَ ٱلَّذِى جَعَلَ ٱلشَّمْسَ ضِيَآءً وَٱلْقَمَرَ نُورًا", surah: "QS. Yunus [10]: 5", arti: "\"Dialah yang menjadikan matahari bersinar dan bulan bercahaya...\"", pesan: "Bulan memantulkan cahaya matahari ke bumi." }, cinta: "🧠 Cinta Ilmu", refleksi: "Apa yang membuatmu kagum pada ciptaan Allah?",
+            lab: { judul: "Cermin Ajaib", instruksi: "Putar cermin untuk memantulkan sinar ke target.", alat: "Senter, Cermin Datar", prediksi1: "Sinar berbelok ke arah yang teratur", prediksi2: "Sinar menembus cermin", jawPrediksi: "1", penjelasan: "Cermin memantulkan cahaya sesuai Hukum Pemantulan: Sudut Datang = Sudut Pantul.",
+                html: `<div style="position:relative;width:300px;height:200px;background:#2c3e50;border-radius:10px;overflow:hidden;margin:0 auto;">
+                    <div style="position:absolute; top:25px; left:10px; transform-origin: 30px 15px; transform: rotate(28.6deg);">
+                        <svg width="40" height="30" viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="8" width="20" height="14" rx="2" fill="#7f8c8d" /><polygon points="20,8 30,2 30,28 20,22" fill="#95a5a6" /><line x1="30" y1="2" x2="30" y2="28" stroke="#f1c40f" stroke-width="2" /></svg>
+                    </div>
+                    <svg width="300" height="200" style="position:absolute;top:0;left:0;pointer-events:none;"><line x1="40" y1="40" x2="150" y2="100" stroke="yellow" stroke-width="4"/><line id="sinarPantul" x1="150" y1="100" x2="150" y2="100" stroke="yellow" stroke-width="4"/></svg>
+                    <div id="cermin3" style="position:absolute;top:70px;left:140px;width:20px;height:60px;background:#bdc3c7;border-left:4px solid #3498db;transform:rotate(0deg);transition:0.3s;"></div><div id="target3" style="position:absolute;top:20px;right:20px;font-size:30px;opacity:0.3;">🎯</div></div><br><input type="range" id="putarCermin" min="-45" max="45" value="0" style="width:200px;" oninput="rotasiCermin()">`, 
+                js: `window.rotasiCermin = function(){ let s = parseInt(document.getElementById('putarCermin').value); document.getElementById('cermin3').style.transform = 'rotate('+s+'deg)'; let dx = 150 + (100 * Math.cos((s-45)*Math.PI/180)); let dy = 100 + (100 * Math.sin((s-45)*Math.PI/180)); document.getElementById('sinarPantul').setAttribute('x2', dx); document.getElementById('sinarPantul').setAttribute('y2', dy); if(s > 25 && s < 35) { document.getElementById('target3').style.opacity=1; document.getElementById('lab-kesimpulan-teks').style.display='block'; document.getElementById('lab-kesimpulan-teks').innerText="Hasil: Arah pantulan berubah sesuai kemiringan cermin.";} else { document.getElementById('target3').style.opacity=0.3;} }`
+            }, 
+            game: { ilustrasi: "🚗", tanya: "Mengapa kaca spion mobil dapat menunjukkan area di belakang kita?", opsi: [{teks:"Kaca spion memantulkan cahaya secara teratur ke mata pengemudi", benar:true}, {teks:"Kaca spion memiliki kamera tembus pandang", benar:false}], penjelasan:"Kaca spion bertindak sebagai cermin yang memantulkan cahaya objek di belakang ke arah mata kita." } 
+        },
+        { 
+            id: 4, title: "Cahaya Dibiaskan", icon: "✏️", desc: "Cahaya berbelok ketika melewati dua zat yang berbeda kerapatannya.", fakta: "Kolam renang terlihat lebih dangkal dari aslinya karena pembiasan.", rangkuman: "Pembiasan (refraksi) membuat benda di dalam air tampak bengkok atau dangkal.", fenomena: { isi: "<ul><li>Pensil tampak patah di dalam gelas air.</li><li>Dasar sungai jernih terlihat dangkal.</li></ul>", aktivitas: "▶ Aktivitas: Masukkan sedotan ke gelas air bening!" }, quran: { arab: "أَلَمْ تَرَ إِلَىٰ رَبِّكَ كَيْفَ مَدَّ ٱلظِّلَّ...", surah: "QS. Al-Furqan [25]: 45", arti: "\"Apakah kamu tidak memperhatikan bagaimana Tuhanmu memanjangkan bayang-bayang...\"", pesan: "Amati perubahan bayangan dan belokan cahaya." }, cinta: "🤝 Cinta Diri Sendiri", refleksi: "Mengapa kita tidak boleh mudah tertipu 'tampilan luar'?",
+            lab: { judul: "Misi Detektif – Eksperimen Pensil", instruksi: "Amati efek pembiasan pada pensil saat masuk ke air beserta jalur cahayanya.", alat: "Wadah Air, Gelas Kaca, Pensil", prediksi1: "Pensil benar-benar patah karena air", prediksi2: "Pensil terlihat bengkok atau bergeser karena pembiasan cahaya", jawPrediksi: "2", penjelasan: "Pembiasan terjadi karena perubahan kecepatan cahaya saat berpindah medium (air ke udara). Mata mengira cahaya datang lurus, sehingga bagian pensil di air tampak bergeser posisinya.",
+                html: `<div style="display:flex; flex-direction:column; gap:15px; width:100%; align-items:center; position:relative;">
+                        <div style="position:relative; width:220px; height:260px; margin-top:20px;">
+                            <!-- Gelas -->
+                            <div style="position:absolute; bottom:0; left:30px; width:160px; height:200px; border:4px solid #bdc3c7; border-top:none; border-radius:0 0 15px 15px; background:rgba(255,255,255,0.2);"></div>
+                            <!-- Air -->
+                            <div style="position:absolute; bottom:4px; left:34px; width:152px; height:120px; background:rgba(116, 185, 255, 0.4); border-top:2px solid rgba(255,255,255,0.8); border-radius:0 0 10px 10px;"></div>
+                            
+                            <!-- Pensil Utuh (Awal) -->
+                            <div id="m4-pensil-asli" style="position:absolute; left:120px; top:-120px; width:12px; height:200px; background:#f1c40f; border:2px solid #d4ac0d; border-radius:4px; transform:rotate(20deg); transform-origin: top center; transition:top 0.8s, clip-path 0.3s; z-index:2;">
+                                <div style="position:absolute; bottom:0; left:0; width:0; height:0; border-left:4px solid transparent; border-right:4px solid transparent; border-top:15px solid #d4ac0d;"></div>
+                            </div>
+
+                            <!-- Bagian Pensil Bawah (Air) - Muncul saat dicelup -->
+                            <div id="m4-air-mask" style="position:absolute; bottom:4px; left:34px; width:152px; height:120px; overflow:hidden; z-index:3; display:none;">
+                                <div id="m4-pensil-bawah" style="position:absolute; left:72px; top:-35px; width:12px; height:200px; background:#f1c40f; border:2px solid #d4ac0d; border-radius:4px; transform:rotate(20deg); transform-origin: top center;"></div>
+                            </div>
+
+                            <!-- SVG Diagram -->
+                            <svg id="m4-diagram" width="350" height="300" style="position:absolute; top:-30px; left:-50px; pointer-events:none; z-index:5; display:none;">
+                                <!-- Garis Normal -->
+                                <line x1="165" y1="80" x2="165" y2="200" stroke="red" stroke-width="2" stroke-dasharray="5,5" />
+                                <text x="170" y="90" fill="red" font-size="12" font-weight="bold">Garis Normal</text>
+                                
+                                <!-- Sinar Datang (Air) -->
+                                <line x1="130" y1="210" x2="165" y2="136" stroke="#2980b9" stroke-width="3" />
+                                <text x="60" y="190" fill="#2980b9" font-size="12" font-weight="bold">Sinar Datang</text>
+                                <polygon points="150,165 140,175 155,175" fill="#2980b9" transform="rotate(-65 147 170)" />
+
+                                <!-- Sinar Bias (Udara) -->
+                                <line x1="165" y1="136" x2="270" y2="90" stroke="#f39c12" stroke-width="3" />
+                                <text x="210" y="80" fill="#f39c12" font-size="12" font-weight="bold">Sinar Bias</text>
+                                <polygon points="215,110 205,120 220,120" fill="#f39c12" transform="rotate(-25 212 115)" />
+                                
+                                <!-- Garis Perpanjangan (Bayangan Semu) -->
+                                <line x1="165" y1="136" x2="110" y2="160" stroke="#7f8c8d" stroke-width="2" stroke-dasharray="4,4" />
+                                
+                                <!-- Mata -->
+                                <text x="275" y="95" font-size="30">👁️</text>
+                                <text x="285" y="115" fill="#333" font-size="12" font-weight="bold">Mata Pengamat</text>
+                                
+                                <!-- Label Permukaan Air -->
+                                <text x="15" y="140" fill="#000" font-size="12" font-weight="bold">Permukaan Air</text>
+                            </svg>
+                        </div>
+                        
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; z-index:10;">
+                            <button id="btn-m4-celup" class="btn btn-primary" onclick="celupPensilM4()">Celupkan Pensil</button>
+                            <button id="btn-m4-cahaya" class="btn btn-info" onclick="lihatCahayaM4()" style="display:none;">Arah Datangnya Cahaya</button>
+                            <button id="btn-m4-nyata" class="btn btn-success" onclick="keadaanSebenarnyaM4()" style="display:none;">Keadaan Sebenarnya</button>
+                            <button id="btn-m4-reset" class="btn btn-danger" onclick="resetM4()" style="display:none;">Ulangi Percobaan</button>
+                        </div>
+                    </div>`,
+                js: `window.celupPensilM4 = function() {
+                        playClick();
+                        document.getElementById('m4-pensil-asli').style.top = '10px';
+                        document.getElementById('btn-m4-celup').style.display = 'none';
+                        setTimeout(() => {
+                            document.getElementById('m4-pensil-asli').style.clipPath = "polygon(0 0, 100% 0, 100% 63%, 0 63%)";
+                            document.getElementById('m4-air-mask').style.display = 'block';
+                            document.getElementById('btn-m4-cahaya').style.display = 'inline-block';
+                            document.getElementById('btn-m4-nyata').style.display = 'inline-block';
+                            document.getElementById('btn-m4-reset').style.display = 'inline-block';
+                            document.getElementById('lab-kesimpulan-teks').style.display = 'block';
+                            document.getElementById('lab-kesimpulan-teks').innerText = "Amati! Pensil terlihat bengkok dan bergeser pada batas air akibat pembiasan.";
+                        }, 800);
+                    };
+                    window.lihatCahayaM4 = function() {
+                        playClick();
+                        document.getElementById('m4-diagram').style.display = 'block';
+                        document.getElementById('m4-air-mask').style.display = 'block';
+                        document.getElementById('m4-pensil-asli').style.clipPath = "polygon(0 0, 100% 0, 100% 63%, 0 63%)";
+                        document.getElementById('lab-kesimpulan-teks').innerHTML = "Cahaya dari pensil di air bergerak menuju udara dan <b>dibiaskan menjauhi garis normal</b>. Mata menangkapnya lurus, menciptakan bayangan semu (pensil terlihat bengkok).";
+                    };
+                    window.keadaanSebenarnyaM4 = function() {
+                        playClick();
+                        document.getElementById('m4-diagram').style.display = 'none';
+                        document.getElementById('m4-air-mask').style.display = 'none';
+                        document.getElementById('m4-pensil-asli').style.clipPath = "none";
+                        document.getElementById('lab-kesimpulan-teks').innerHTML = "<b>Keadaan Sebenarnya:</b> Pensil sama sekali tidak patah. Perbedaan medium (air ke udara) yang membelokkan arah cahaya ke mata kita.";
+                    };
+                    window.resetM4 = function() {
+                        playClick();
+                        document.getElementById('m4-pensil-asli').style.top = '-120px';
+                        document.getElementById('m4-pensil-asli').style.clipPath = "none";
+                        document.getElementById('m4-air-mask').style.display = 'none';
+                        document.getElementById('m4-diagram').style.display = 'none';
+                        document.getElementById('lab-kesimpulan-teks').style.display = 'none';
+                        document.getElementById('btn-m4-celup').style.display = 'inline-block';
+                        document.getElementById('btn-m4-cahaya').style.display = 'none';
+                        document.getElementById('btn-m4-nyata').style.display = 'none';
+                        document.getElementById('btn-m4-reset').style.display = 'none';
+                    };`
+            }, 
+            game: { ilustrasi: "🏊‍♂️", tanya: "Mengapa dasar kolam renang yang dalam terkadang terlihat dangkal dari atas?", opsi: [{teks:"Karena cahaya diserap lantai kolam", benar:false}, {teks:"Karena cahaya dari dasar dibelokkan saat menuju mata kita", benar:true}], penjelasan:"Cahaya dari dasar kolam bergerak dari air (rapat) ke udara (renggang) dibiaskan menjauhi garis normal, membuat bayangan dasar kolam terlihat naik." } 
+        },
+        { 
+            id: 5, title: "Penguraian Cahaya", icon: "🌈", desc: "Cahaya putih sebenarnya adalah gabungan dari berbagai warna (spektrum).", fakta: "Pelangi terbentuk dari rintik hujan yang bertindak seperti prisma.", rangkuman: "Dispersi (penguraian) memisahkan cahaya putih menjadi warna-warni.", fenomena: { isi: "<ul><li>Pelangi setelah hujan.</li><li>Buih sabun yang berwarna-warni.</li></ul>", aktivitas: "▶ Aktivitas: Semprot air ke udara membelakangi matahari!" }, quran: { arab: "ٱللَّهُ ٱلَّذِى يُرْسِلُ ٱلرِّيَـٰحَ فَتُثِيرُ سَحَابًا...", surah: "QS. Ar-Rum [30]: 48", arti: "\"Dialah yang mengirim angin...\"", pesan: "Pelangi setelah hujan bukti keindahan ciptaan Allah." }, cinta: "🇮🇩 Cinta Tanah Air", refleksi: "Hikmah apa dari indahnya pelangi setelah badai?",
+            lab: { judul: "Pembuat Pelangi", instruksi: "Nyalakan senter ke arah prisma kaca.", alat: "Prisma Kaca, Senter Putih", prediksi1: "Cahaya putih pecah jadi warna pelangi", prediksi2: "Cahaya berubah jadi gelap", jawPrediksi: "1", penjelasan: "Cahaya putih terurai saat melalui prisma karena setiap warna memiliki sudut bias yang berbeda (Dispersi).",
+                html: `<div style="position:relative;width:300px;height:200px;background:#2c3e50;border-radius:10px;margin:0 auto;">
+                    <div style="position:absolute;top:85px;left:20px;">
+                        <svg width="40" height="30" viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="8" width="20" height="14" rx="2" fill="#7f8c8d" /><polygon points="20,8 30,2 30,28 20,22" fill="#95a5a6" /><line x1="30" y1="2" x2="30" y2="28" stroke="#f1c40f" stroke-width="2" /></svg>
+                    </div>
+                    <div id="sinarPutih" style="position:absolute;top:95px;left:50px;width:0px;height:10px;background:white;transition:0.5s;"></div>
+                    <svg width="300" height="200" style="position:absolute;top:0;left:0;">
+                        <polygon points="150,50 200,150 100,150" fill="rgba(255,255,255,0.2)" stroke="#fff"/>
+                        <g id="pelangi" style="opacity:0;transition:1s;">
+                            <line x1="125" y1="100" x2="280" y2="60" stroke="red" stroke-width="4"/>
+                            <line x1="125" y1="100" x2="280" y2="70" stroke="orange" stroke-width="4"/>
+                            <line x1="125" y1="100" x2="280" y2="80" stroke="yellow" stroke-width="4"/>
+                            <line x1="125" y1="100" x2="280" y2="90" stroke="green" stroke-width="4"/>
+                            <line x1="125" y1="100" x2="280" y2="100" stroke="blue" stroke-width="4"/>
+                            <line x1="125" y1="100" x2="280" y2="110" stroke="violet" stroke-width="4"/>
+                        </g>
+                    </svg>
+                </div><br><button class="btn btn-primary" onclick="nyalakanPrisma()">Nyalakan Cahaya Putih</button>`, 
+                js: `window.nyalakanPrisma = function(){ playClick(); document.getElementById('sinarPutih').style.width = '75px'; setTimeout(()=>{ document.getElementById('pelangi').style.opacity = 1; document.getElementById('lab-kesimpulan-teks').style.display='block'; document.getElementById('lab-kesimpulan-teks').innerText="Hasil: Cahaya putih terurai menjadi berbagai warna.";}, 500); }`
+            }, 
+            game: { ilustrasi: "🫧", tanya: "Bagaimana pelangi terbentuk di langit setelah turun hujan?", opsi: [{teks:"Cahaya matahari terpantul oleh awan", benar:false}, {teks:"Titik air hujan menguraikan cahaya matahari yang putih menjadi warna-warni", benar:true}], penjelasan:"Titik air hujan bertindak seperti 'prisma' kaca yang membiaskan dan menguraikan cahaya (Dispersi)." } 
+        }
+    ];
+
+    const hotsBank = [
+        { q: "Mengapa kita tidak dapat melihat teman kita yang berada di balik tembok kelas?", o: ["Karena tembok memantulkan cahaya ke mata", "Karena tembok adalah benda opak (gelap) yang menghalangi cahaya lurus"], a: 1 },
+        { q: "Mengapa kaca bening jendela bisa ditembus cahaya, sedangkan kayu pintu tidak bisa?", o: ["Sifat molekul kaca meneruskan energi cahaya, kayu menyerapnya", "Kayu memiliki warna yang lebih gelap dari kaca"], a: 0 },
+        { q: "Mengapa kaca spion luar mobil dibuat sedikit cembung?", o: ["Agar pantulan cahaya memperluas area pandangan ke belakang", "Agar cahaya matahari tidak membuat silau"], a: 0 },
+        { q: "Seorang nelayan melihat ikan di dalam air yang jernih. Agar mengenai ikan, ke mana ia harus melempar tombaknya?", o: ["Sedikit ke bawah dari posisi bayangan ikan", "Tepat di posisi bayangan ikan"], a: 0 },
+        { q: "Mengapa pelangi selalu muncul di arah yang berlawanan dengan posisi matahari?", o: ["Karena pelangi hanya memantulkan warna awan", "Karena cahaya matahari butuh sudut masuk ke titik air dari belakang pengamat agar terurai ke depan matanya"], a: 1 }
+    ];
+
+    const galeriDB = [
+        { id:1, img:"🌲", title:"Bayangan Pohon", sifat:"Merambat Lurus", amati:"Bayangan selalu mengikuti bentuk dan posisinya di seberang cahaya.", info:"Saat cahaya terhalang benda, area gelap di baliknya disebut bayangan.", hikmah:"Bayangan mengajarkan kita bahwa Allah menciptakan perlindungan dari panas." },
+        { id:2, img:"🪟", title:"Kaca Jendela", sifat:"Menembus Benda Bening", amati:"Ruangan menjadi terang benderang meski jendela tertutup rapat.", info:"Kaca meneruskan 90% foton cahaya yang menabraknya.", hikmah:"Hati yang bening akan mudah menerima cahaya hidayah Allah." },
+        { id:3, img:"🌊", title:"Pantulan di Danau", sifat:"Dapat Dipantulkan", amati:"Permukaan air tenang bertindak bagai cermin yang memantulkan langit.", info:"Pemantulan teratur (spekuler) terjadi pada permukaan yang sangat rata.", hikmah:"Jadilah seperti air tenang yang memantulkan kebaikan bagi sekitar." },
+        { id:4, img:"🐟", title:"Dasar Kolam Dangkal", sifat:"Dapat Dibiaskan", amati:"Kolam terlihat tidak dalam.", info:"Cahaya melambat di air dan membelok saat kembali ke udara.", hikmah:"Jangan tertipu oleh penampilan; telitilah segala hal (tabayyun)." },
+        { id:5, img:"🌈", title:"Pelangi Setelah Hujan", sifat:"Dapat Diuraikan", amati:"Warna-warna indah melengkung di langit setelah badai/hujan.", info:"Air hujan memecah cahaya putih jadi spektrum warna (Dispersi).", hikmah:"Setelah kesulitan dan kesedihan, Allah selalu memberikan pelangi kebahagiaan." },
+    ];
+
+    // --- APP LOGIC CORE ---
+    function initApp() {
+        terapkanIdentitasKeUI();
+        const saved = localStorage.getItem('cahayaExplorerDataIslami');
+        if (saved) { state = JSON.parse(saved); ensureStateIntegrity(); showScreen('screen-dashboard'); }
+        renderSidebarNav(); updateUI();
+        
+        // Menginisialisasi otomatis Sheet "Data Soal" dengan daftar pertanyaan ke GAS
+        inisialisasiDataSoalGAS();
+    }
+    
+    function ensureStateIntegrity() {
+        if(!state.labSelesaiArr) state.labSelesaiArr = [];
+        if(!state.detektifSelesaiArr) state.detektifSelesaiArr = [];
+        if(!state.jurnalData || state.jurnalData.length !== 3) state.jurnalData = ["","",""];
+        if(!state.refleksiData) state.refleksiData = ["","","","",""];
+        if(state.waliKelas === undefined) state.waliKelas = "";
+    }
+
+    function simpanProgres() { 
+        localStorage.setItem('cahayaExplorerDataIslami', JSON.stringify(state)); 
+        simpanKeRuangGuru(); updateUI(); 
+    }
+
+    function simpanKeRuangGuru() {
+        if(!state.nama) return;
+        let allUsers = JSON.parse(localStorage.getItem('cahayaSemuaSiswa') || '[]');
+        let idx = allUsers.findIndex(u => u.nama === state.nama && u.kelas === state.kelas);
+        if(idx > -1) allUsers[idx] = state; else allUsers.push(state);
+        localStorage.setItem('cahayaSemuaSiswa', JSON.stringify(allUsers));
+    }
+    
+    // --- SIDEBAR GENERATOR ---
+    function renderSidebarNav() {
+        const navHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 40px; background: white; border-radius: 50%; width: 60px; height: 60px; margin: 0 auto; display: flex; align-items:center; justify-content:center; border:2px solid var(--bright-yellow);">👦</div>
+                <h3 style="color: white; margin-top:10px; font-size:0.95rem; text-transform:uppercase;">${escapeHTML(state.nama || 'Detektif')}</h3>
+                <p style="font-size: 0.8rem; opacity: 0.8;">${escapeHTML(state.kelas || 'Kelas')}</p>
+            </div>
+            <button class="sidebar-btn" onclick="showScreen('screen-dashboard')">📊 Progress & Lencana</button>
+            <button class="sidebar-btn" onclick="showScreen('screen-map')">🗺️ Peta Misi (Utama)</button>
+            <button class="sidebar-btn" onclick="showScreen('screen-galeri')">🖼️ Galeri Fenomena</button>
+            <button class="sidebar-btn" onclick="showScreen('screen-hots')">🧠 Tantangan HOTS</button>
+            <hr style="border-color:rgba(255,255,255,0.2); margin:5px 0;">
+            <button class="sidebar-btn" style="background: rgba(46, 204, 113, 0.4);" onclick="showScreen('screen-welcome')">🏠 Kembali ke Beranda</button>
+            <button class="sidebar-btn" style="background: rgba(142, 68, 173, 0.8);" onclick="bukaModalPIN()">👨‍🏫 Ruang Guru</button>
+        `;
+        document.querySelectorAll('.sidebar').forEach(el => el.innerHTML = navHTML);
+    }
+    
+    function updateUI() {
+        if(!state.nama) { document.getElementById('ui-stars').innerText = "0"; document.getElementById('ui-score').innerText = "0"; return; }
+        
+        document.getElementById('ui-stars').innerText = state.bintang;
+        document.getElementById('ui-score').innerText = state.skor;
+        
+        let cDash = document.getElementById('dash-skor'); if(cDash) cDash.innerText = state.skor;
+        let cMisi = document.getElementById('dash-misi'); if(cMisi) cMisi.innerText = state.misiSelesai.length;
+        let cBint = document.getElementById('dash-bintang'); if(cBint) cBint.innerText = state.bintang;
+        
+        let dNama = document.getElementById('dash-nama-siswa'); if(dNama) dNama.innerText = escapeHTML(state.nama);
+        let dKelas = document.getElementById('dash-kelas-siswa'); if(dKelas) dKelas.innerText = escapeHTML(state.kelas);
+        let dWali = document.getElementById('dash-walikelas-siswa'); if(dWali) dWali.innerText = escapeHTML(state.waliKelas || "-");
+
+        const btnCert = document.getElementById('btn-lihat-sertifikat');
+        const isEligible = state.misiSelesai.length === 5 && state.labSelesaiArr.length === 5 && state.detektifSelesaiArr.length === 5 && state.kuisHistory.length > 0;
+        if(btnCert) btnCert.style.display = isEligible ? "inline-flex" : "none";
+
+        const certNama = document.getElementById('cert-nama'); if(certNama) certNama.innerText = escapeHTML(state.nama);
+        const certKelas = document.getElementById('cert-kelas'); if(certKelas) certKelas.innerText = escapeHTML(state.kelas);
+        const certWali = document.getElementById('cert-walikelas'); if(certWali) certWali.innerText = escapeHTML(state.waliKelas || "-");
+        
+        const certTanggal = document.getElementById('cert-tanggal'); 
+        if(certTanggal) {
+            let tgl = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            if(state.kuisHistory.length > 0) tgl = state.kuisHistory[state.kuisHistory.length-1].tgl;
+            certTanggal.innerText = tgl;
+        }
+
+        let predikatCert = "SANGAT BAIK";
+        if(state.kuisHistory.length > 0) {
+            let lastScore = state.kuisHistory[state.kuisHistory.length-1].skor;
+            if(lastScore < 60) predikatCert = "PERLU BIMBINGAN";
+            else if(lastScore < 76) predikatCert = "CUKUP";
+            else if(lastScore < 86) predikatCert = "BAIK";
+        }
+        document.getElementById('cert-predikat').innerText = predikatCert;
+        
+        cekLencana();
+    }
+    
+    function cekLencana() {
+        const b = document.getElementById('badge-container'); if(!b) return; b.innerHTML = "";
+        const bdg = [
+            { id:'b1', icon:'🧐', title:'Pengamat', kriteria: state.misiUnlocked >= 1 },
+            { id:'b2', icon:'🧪', title:'Ilmuwan', kriteria: state.labSelesaiArr.length > 0 },
+            { id:'b3', icon:'🕵️‍♂️', title:'Detektif', kriteria: state.detektifSelesaiArr.length === 5 },
+            { id:'b4', icon:'🔬', title:'Eksperimen', kriteria: state.labSelesaiArr.length === 5 },
+            { id:'b5', icon:'❤️', title:'Karakter', kriteria: state.refleksiSelesai }
+        ];
+        bdg.forEach(x => { b.innerHTML += `<div class="badge-item ${x.kriteria?'earned':''}"><div class="badge-icon">${x.icon}</div><div class="badge-title">${x.title}</div></div>`; });
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        let targetScreen = document.getElementById(id);
+        if(targetScreen) targetScreen.classList.add('active');
+        document.getElementById('main-header').style.display = (id === 'screen-welcome' || id === 'screen-certificate') ? 'none' : 'flex';
+        
+        if (id === 'screen-map') renderMap();
+        if (id === 'screen-dashboard') updateUI();
+        if (id === 'screen-galeri') renderGaleri();
+        if (id === 'screen-hots' && hotsIdx===0) mulaiHots();
+        if (id === 'screen-guru') renderTabelGuru();
+        renderSidebarNav();
+    }
+    
+    function showInputModal() { playClick(); initAudio(); if (state.nama !== "") showScreen('screen-map'); else document.getElementById('modal-login').style.display = 'flex'; }
+    
+    function mulaiAplikasi() {
+        playClick(); 
+        const n = document.getElementById('input-nama').value.trim(); const k = document.getElementById('input-kelas').value.trim(); const wk = document.getElementById('input-walikelas').value.trim();
+        if (n === "" || k === "" || wk === "") { tampilkanPesan("Nama, Kelas, dan Wali Kelas wajib diisi!"); return; }
+        
+        let allUsers = JSON.parse(localStorage.getItem('cahayaSemuaSiswa') || '[]');
+        let existingUser = allUsers.find(u => u.nama.toLowerCase() === n.toLowerCase() && u.kelas === k);
+        
+        if(existingUser) {
+            state = JSON.parse(JSON.stringify(existingUser));
+            if(!state.waliKelas) state.waliKelas = wk; 
+            ensureStateIntegrity(); tampilkanPesan(`Selamat datang kembali, ${state.nama}!`);
+        } else { state = { nama: n, kelas: k, waliKelas: wk, skor: 0, bintang: 0, misiUnlocked: 1, misiSelesai: [], kuisHistory: [], refleksiSelesai: false, renunganMisi: {}, labSelesaiArr: [], detektifSelesaiArr: [], hotsSelesai: 0, jurnalData: ["","",""], refleksiData: ["","","","",""] }; }
+        
+        document.getElementById('modal-login').style.display = 'none'; simpanProgres(); showScreen('screen-map');
+    }
+
+    function renderMap() {
+        const c = document.getElementById('mission-container'); c.innerHTML = "";
+        missions.forEach(m => {
+            const isUnl = m.id <= state.misiUnlocked; const isCom = state.misiSelesai.includes(m.id);
+            let cls = isCom ? "completed" : (isUnl ? "unlocked" : "locked");
+            let div = document.createElement('div'); div.className = `mission-card ${cls}`;
+            div.innerHTML = `<div style="font-size:40px;">${m.icon}</div><div style="font-weight:bold;margin:10px 0;">Misi ${m.id}</div><div style="font-size:0.8rem;color:#777;">${m.title}</div>`;
+            if (isUnl) div.onclick = () => { playClick(); bukaMisi(m.id); }; c.appendChild(div);
+        });
+    }
+
+    let activeMissionId = null, labSelesaiState = false;
+    
+    function bukaMisi(id) {
+        activeMissionId = id; const m = missions.find(x => x.id === id);
+        document.getElementById('misi-judul').innerText = `Misi ${m.id}: ${m.title}`;
+        document.getElementById('materi-icon').innerText = m.icon; document.getElementById('materi-teks').innerText = m.desc;
+        document.getElementById('materi-fakta').innerText = m.fakta; document.getElementById('materi-rangkuman').innerText = m.rangkuman;
+        document.getElementById('fenomena-isi').innerHTML = m.fenomena.isi; document.getElementById('fenomena-aktivitas').innerHTML = m.fenomena.aktivitas;
+        document.getElementById('quran-arab').innerText = m.quran.arab; document.getElementById('quran-surah').innerText = m.quran.surah;
+        document.getElementById('quran-arti').innerText = m.quran.arti; document.getElementById('quran-pesan').innerText = m.quran.pesan;
+        document.getElementById('refleksi-cinta').innerText = m.cinta; document.getElementById('refleksi-tanya').innerText = m.refleksi;
+        document.getElementById('refleksi-jawaban').value = state.renunganMisi[id] || "";
+
+        labSelesaiState = state.labSelesaiArr.includes(id); 
+        document.getElementById('lab-judul').innerText = m.lab.judul; document.getElementById('lab-instruksi').innerText = m.lab.instruksi;
+        document.getElementById('lab-alat').innerText = m.lab.alat; document.getElementById('prediksi-1').innerText = m.lab.prediksi1; 
+        document.getElementById('prediksi-2').innerText = m.lab.prediksi2; document.getElementById('lab-prediksi').value = "";
+        document.getElementById('lab-kesimpulan-teks').style.display = 'none';
+        document.getElementById('lab-area').innerHTML = m.lab.html;
+        if(m.lab.js) { let s = document.createElement('script'); s.text = m.lab.js; document.body.appendChild(s); }
+        
+        document.getElementById('game-ilustrasi').innerText = m.game.ilustrasi; document.getElementById('game-tanya').innerText = m.game.tanya;
+        let gO = document.getElementById('game-opsi'); gO.innerHTML = ""; document.getElementById('game-feedback-container').style.display = "none";
+        m.game.opsi.forEach(op => {
+            let b = document.createElement('button'); b.className = "btn"; b.innerText = op.teks; b.style.background="white"; b.style.flex="1"; b.style.minWidth="100%";
+            b.onclick = () => cekGameDetektif(b, op.benar, m, id); gO.appendChild(b);
+        });
+        document.getElementById('tab-btn-game').style.opacity = labSelesaiState ? '1' : '0.5';
+        document.getElementById('tab-btn-game').style.cursor = labSelesaiState ? 'pointer' : 'not-allowed';
+        showMascot("Ayo mulai mengamati!", "anim-jump"); switchTab('materi'); showScreen('screen-mission-detail');
+    }
+    
+    function simpanRenunganMisi() {
+        playClick(); let ans = document.getElementById('refleksi-jawaban').value.trim();
+        if(ans === "") { tampilkanPesan("Tuliskan dulu renunganmu ya!"); return; }
+        state.renunganMisi[activeMissionId] = escapeHTML(ans); simpanProgres(); tampilkanPesan("Renungan berhasil disimpan!");
+    }
+
+    function switchTab(t) {
+        if(t === 'game' && !labSelesaiState) { tampilkanPesan("Selesaikan eksperimen dan buat kesimpulan di Laboratorium terlebih dahulu!"); return; }
+        playClick(); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        const m = {'materi':0, 'lab':1, 'game':2}; document.querySelectorAll('.tab-btn')[m[t]].classList.add('active'); document.getElementById(`tab-${t}`).classList.add('active');
+    }
+    
+    function selesaikanLab() {
+        let pred = document.getElementById('lab-prediksi').value;
+        if(pred === "") { tampilkanPesan("Buat Prediksi Detektif-mu dulu!"); return; }
+        playFanfare(); const m = missions.find(x => x.id === activeMissionId);
+        let statTitle = "", warna = "";
+        if(pred === m.lab.jawPrediksi) { statTitle = "👍 Prediksimu Tepat Sekali!"; warna = "var(--nature-green)"; } else { statTitle = "🤔 Prediksimu Kurang Tepat, Tapi Kamu Hebat Telah Mencoba!"; warna = "var(--orange)"; }
+        document.getElementById('pembuktian-status').innerText = statTitle; document.getElementById('pembuktian-status').style.color = warna;
+        document.getElementById('pembuktian-penjelasan').innerHTML = "<strong>Penjelasan Ilmiah:</strong><br>" + m.lab.penjelasan;
+        document.getElementById('modal-pembuktian').style.display = 'flex';
+        labSelesaiState = true; if(!state.labSelesaiArr.includes(activeMissionId)) { state.labSelesaiArr.push(activeMissionId); simpanProgres(); }
+        document.getElementById('tab-btn-game').style.opacity = '1'; document.getElementById('tab-btn-game').style.cursor = 'pointer';
+    }
+
+    function tutupPembuktianLanjut() { playClick(); document.getElementById('modal-pembuktian').style.display = 'none'; switchTab('game'); }
+
+    function cekGameDetektif(btn, benar, m, id) {
+        if(!labSelesaiState || btn.disabled) return;
+        const fbc = document.getElementById('game-feedback-container'); fbc.style.display="block";
+        const fbt = document.getElementById('game-feedback-title'); const fbd = document.getElementById('game-feedback-desc');
+        document.querySelectorAll('#game-opsi .btn').forEach(b => b.disabled = true);
+        if(benar) {
+            playSuccess(); shootConfetti(); btn.style.background = "#2ecc71"; btn.style.color="white"; 
+            fbc.style.background = "#d4edda"; fbt.innerText = "⭐ Benar Sekali, Detektif!"; fbt.style.color = "green"; fbd.innerText = "Penjelasan: " + m.game.penjelasan;
+            if(!state.detektifSelesaiArr.includes(id)) state.detektifSelesaiArr.push(id);
+            if(!state.misiSelesai.includes(id)) { state.misiSelesai.push(id); state.skor += 20; state.bintang += 10; if(state.misiUnlocked < 5 && state.misiUnlocked === id) state.misiUnlocked++; simpanProgres(); }
+            setTimeout(()=> { showScreen('screen-map'); }, 6000); 
+        } else {
+            playWrong(); showMascot("Coba selidiki lagi!", "anim-shake"); btn.style.background = "#e74c3c"; btn.style.color="white"; 
+            fbc.style.background = "#f8d7da"; fbt.innerText = "❌ Hipotesis Kurang Tepat"; fbt.style.color = "red"; fbd.innerText = "Coba amati kembali.";
+            setTimeout(() => { document.querySelectorAll('#game-opsi .btn').forEach(b => b.disabled = false); btn.disabled=false; fbc.style.display="none";}, 2500);
+        }
+    }
+
+    function checkAllMissionsCompleted() { playClick(); if(state.misiSelesai.length < 5) { tampilkanPesan(`Selesaikan semua 5 Misi dulu ya!`); return; } mulaiKuis(); }
+
+    function renderGaleri() {
+        const c = document.getElementById('galeri-container'); c.innerHTML = "";
+        galeriDB.forEach(g => {
+            c.innerHTML += `<div class="gallery-card"><div class="gallery-img-placeholder">${g.img}</div><div class="gallery-body"><h3 style="margin-bottom:5px; font-size:1.1rem; color:var(--dark-blue);">${g.title}</h3><p style="font-size:0.9rem; color:var(--primary-blue); font-weight:bold; margin-bottom:15px;">🔍 Sifat: ${g.sifat}</p><div class="gallery-buttons"><button class="gallery-btn" onclick="bukaModalGaleri('Amati', '${g.amati}')">Amati</button><button class="gallery-btn" onclick="bukaModalGaleri('Penjelasan Ilmiah', '${g.info}')">Sains</button><button class="gallery-btn" onclick="bukaModalGaleri('Hikmah Kehidupan', '${g.hikmah}')" style="background:#fff3cd; border-color:#e6a83a;">Hikmah</button></div></div></div>`;
+        });
+    }
+    function bukaModalGaleri(judul, isi) { playClick(); document.getElementById('modal-galeri-title').innerText = judul; document.getElementById('modal-galeri-content').innerText = isi; document.getElementById('modal-galeri').style.display = 'flex'; }
+
+    // --- HOTS ---
+    let hotsIdx = 0, hotsScore = 0;
+    function mulaiHots() { hotsIdx = 0; hotsScore = 0; renderHots(); }
+    function renderHots() {
+        if(hotsIdx >= hotsBank.length) { state.hotsSelesai = hotsScore; state.skor += (hotsScore * 10); simpanProgres(); tampilkanPesan(`Tantangan Selesai! Kamu menjawab ${hotsScore} dengan benar.`); showScreen('screen-dashboard'); return; }
+        const s = hotsBank[hotsIdx]; document.getElementById('hots-current-num').innerText = hotsIdx+1; document.getElementById('hots-question').innerText = s.q;
+        let og = document.getElementById('hots-options'); og.innerHTML = ""; document.getElementById('hots-feedback').style.display="none"; document.getElementById('btn-next-hots').style.display="none";
+        let optArr = s.o.map((text, i) => ({text, isC: i===s.a})).sort(()=>0.5-Math.random());
+        optArr.forEach(ops => { let b = document.createElement('button'); b.className = "btn"; b.style.background="white"; b.style.textAlign="left"; b.innerText = ops.text; b.onclick = () => pilihHots(b, ops.isC, og, optArr); og.appendChild(b); });
+    }
+    function pilihHots(btn, benar, grid, optData) {
+        if(btn.disabled) return; Array.from(grid.childNodes).forEach(b => b.disabled = true); let fb = document.getElementById('hots-feedback'); fb.style.display="block";
+        if(benar) { playSuccess(); btn.style.background = "#d4edda"; fb.innerText="✅ Analisis tepat!"; hotsScore++; } 
+        else { playWrong(); btn.style.background = "#f8d7da"; fb.innerText="❌ Kurang tepat."; Array.from(grid.childNodes).forEach((c, i) => { if(optData[i].isC) c.style.background="#d4edda"; }); }
+        document.getElementById('btn-next-hots').style.display="inline-block";
+    }
+    function nextHots() { playClick(); hotsIdx++; renderHots(); }
+
+    // --- MENGIRIM PERTANYAAN KE GAS (DATA SOAL) ---
+    function inisialisasiDataSoalGAS() {
+        if (GAS_URL === "URL_GAS_ANDA_DISINI") return;
+        
+        // Kumpulkan bank soal dari Kuis dan HOTS
+        let gabunganSoal = [];
+        quizBank.forEach(s => gabunganSoal.push({ q: s.q, o: s.o, a: s.a, kategori: "Kuis Evaluasi" }));
+        hotsBank.forEach(s => gabunganSoal.push({ q: s.q, o: s.o, a: s.a, kategori: "Tantangan HOTS" }));
+        
+        let payload = {
+            action: "saveSoal",
+            soalData: gabunganSoal
+        };
+
+        // Menggunakan mode text/plain untuk menghindari limitasi CORS dari browser ke GAS
+        fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        }).catch(e => console.log("Gagal inisiasi Data Soal:", e));
+    }
+
+    // --- KUIS ---
+    const quizBank = [ { q: "Pelangi membuktikan sifat cahaya yang dapat...", o: ["Diuraikan (Dispersi)", "Dipantulkan", "Merambat Lurus", "Diserap"], a: 0 }, { q: "Benda bening adalah benda yang...", o: ["Dapat ditembus cahaya", "Memantulkan cahaya", "Menyerap cahaya", "Bercahaya sendiri"], a: 0 }, { q: "Pensil di dalam air tampak patah karena terjadinya...", o: ["Pembiasan (Refraksi)", "Pemantulan", "Penguraian", "Bayangan"], a: 0 }, { q: "Cahaya matahari yang masuk celah daun menunjukkan sifat...", o: ["Merambat lurus", "Dibiaskan", "Memantul", "Membelok"], a: 0 }, { q: "Kita dapat berkaca pada cermin karena cermin...", o: ["Memantulkan cahaya", "Membus cahaya", "Menyerap warna", "Bercahaya"], a: 0 } ]; 
+    let kAktif = [], kIdx = 0, kSkor = 0;
+    let jawabanKuisSiswa = []; // Array untuk menampung riwayat jawaban per kuis
+
+    function mulaiKuis() { 
+        kAktif = [...quizBank].sort(() => 0.5 - Math.random()).slice(0, 5); 
+        kIdx = 0; 
+        kSkor = 0; 
+        jawabanKuisSiswa = []; // Reset array saat kuis dimulai
+        showScreen('screen-quiz'); 
+        renderKuis(); 
+    }
+    
+    function renderKuis() {
+        if(kIdx >= kAktif.length) { selesaiKuis(); return; }
+        const s = kAktif[kIdx]; document.getElementById('quiz-current-num').innerText = kIdx+1; document.getElementById('quiz-progress').style.width = `${(kIdx/kAktif.length)*100}%`;
+        document.getElementById('quiz-question').innerText = s.q; let og = document.getElementById('quiz-options'); og.innerHTML = ""; document.getElementById('quiz-feedback').style.display="none"; document.getElementById('btn-next-quiz').style.display="none";
+        let options = s.o.map((opt, i) => ({text: opt, isCorrect: i === s.a})).sort(() => 0.5 - Math.random());
+        options.forEach((ops) => { let b = document.createElement('button'); b.className = "btn"; b.style.background="white"; b.innerText = ops.text; b.onclick = () => pilihKuis(b, ops.isCorrect, og, options); og.appendChild(b); });
+    }
+    
+    function pilihKuis(btn, benar, grid, optionsData) {
+        if(btn.disabled) return; 
+        
+        // Simpan inputan jawaban siswa untuk dikirim ke Backend Google Sheet
+        jawabanKuisSiswa[kIdx] = {
+            soal: kAktif[kIdx].q,
+            jawaban: btn.innerText,
+            benar: benar
+        };
+
+        Array.from(grid.childNodes).forEach(b => b.disabled = true); 
+        let fb = document.getElementById('quiz-feedback'); fb.style.display="block";
+        if(benar) { playSuccess(); btn.style.background = "#d4edda"; fb.innerText="✅ Tepat Sekali!"; kSkor += 20; } 
+        else { playWrong(); btn.style.background = "#f8d7da"; fb.innerText="❌ Salah."; Array.from(grid.childNodes).forEach((c, idx) => { if(optionsData[idx].isCorrect) c.style.background = "#d4edda"; }); }
+        document.getElementById('btn-next-quiz').style.display="inline-block";
+    }
+    
+    function nextQuizSoal() { playClick(); kIdx++; renderKuis(); }
+    
+    function selesaiKuis() {
+        shootConfetti(); playFanfare(); let today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+        state.skor += kSkor; state.kuisHistory.push({tgl: today, skor: kSkor}); simpanProgres();
+        document.getElementById('result-score').innerText = kSkor; document.getElementById('result-message').innerText = (kSkor >= 80) ? "Hebat Sekali!" : "Tetap semangat belajar!"; showScreen('screen-quiz-result');
+        document.querySelectorAll('.refleksi-pengalaman-input').forEach((el, i) => el.value = escapeHTML(state.jurnalData[i] || "")); document.querySelectorAll('.refleksi-akhir-input').forEach((el, i) => el.value = escapeHTML(state.refleksiData[i] || ""));
+        
+        // Secara otomatis kirim data ke GAS
+        kirimDataHasilKeGAS();
+    }
+
+    // --- MENGIRIM HASIL KUIS SISWA KE GAS ---
+    function kirimDataHasilKeGAS() {
+        if (GAS_URL === "URL_GAS_ANDA_DISINI") return; 
+
+        let jumlahBenar = kSkor / 20;
+        let jumlahSalah = 5 - jumlahBenar;
+        
+        let payload = {
+            action: "saveHasil",
+            nama: state.nama,
+            kelas: state.kelas,
+            benar: jumlahBenar,
+            salah: jumlahSalah,
+            detailJawaban: jawabanKuisSiswa
+        };
+        
+        fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        }).catch(e => console.log('Gagal mengirim data Hasil:', e));
+    }
+
+    function simpanRefleksiAkhir() {
+        playClick(); let allFilled = true;
+        document.querySelectorAll('.refleksi-pengalaman-input').forEach((inp, i) => { state.jurnalData[i] = inp.value.trim(); if(inp.value.trim() === "") allFilled = false; });
+        document.querySelectorAll('.refleksi-akhir-input').forEach((inp, i) => { state.refleksiData[i] = inp.value.trim(); if(inp.value.trim() === "") allFilled = false; });
+        if(allFilled) { state.refleksiSelesai = true; simpanProgres(); tampilkanPesan("Refleksi berhasil disimpan!"); showScreen('screen-dashboard'); } else { tampilkanPesan("Lengkapi semua pertanyaan!"); }
+    }
+
+    // --- RUANG GURU ---
+    function bukaModalPIN() { playClick(); document.getElementById('input-pin').value = ''; document.getElementById('modal-pin-guru').style.display = 'flex'; }
+    function verifikasiPIN() { let p = document.getElementById('input-pin').value; if(p === pengaturanGuru.pin) { playSuccess(); document.getElementById('modal-pin-guru').style.display = 'none'; showScreen('screen-guru'); } else { playWrong(); tampilkanPesan("PIN Salah."); } }
+    
+    function renderTabelGuru() {
+        let allUsers = JSON.parse(localStorage.getItem('cahayaSemuaSiswa') || '[]');
+        let tbody = document.querySelector('#table-guru-data tbody'); tbody.innerHTML = "";
+        let tTotal = allUsers.length; let tMisi = 0, tLab = 0, tKuisTotal = 0, tKuisCount = 0, tBimbing = 0;
+        allUsers.forEach((u, index) => {
+            let mS = u.misiSelesai ? u.misiSelesai.length : 0; let lS = u.labSelesaiArr ? u.labSelesaiArr.length : 0;
+            let nK = (u.kuisHistory && u.kuisHistory.length > 0) ? u.kuisHistory[u.kuisHistory.length-1].skor : 0;
+            if(mS === 5) tMisi++; if(lS === 5) tLab++; if(nK > 0) { tKuisTotal += nK; tKuisCount++; if(nK < 76) tBimbing++; }
+            let lencana = (u.misiUnlocked >= 1 ? 1 : 0) + (lS > 0 ? 1 : 0) + (u.detektifSelesaiArr?.length === 5 ? 1 : 0) + (lS === 5 ? 1 : 0) + (u.refleksiSelesai ? 1 : 0);
+            
+            let tr = document.createElement('tr'); tr.className = "row-guru"; tr.setAttribute("data-target", `detail-${index}`);
+            tr.innerHTML = `<td>${index + 1}</td><td class="t-nama" style="cursor:pointer; color:var(--primary-blue); font-weight:bold; text-decoration:underline;" onclick="toggleDetailMurid('${escapeHTML(u.nama)}', '${escapeHTML(u.kelas)}', ${index})">${escapeHTML(u.nama)}</td><td class="t-kelas">${escapeHTML(u.kelas)}</td><td>${u.skor || 0}</td><td>${mS}/5</td><td>${nK}</td><td>${lencana} 🏅</td><td style="display:flex; gap:5px; flex-wrap:wrap;"><button class="btn-info" onclick="toggleDetailMurid('${escapeHTML(u.nama)}', '${escapeHTML(u.kelas)}', ${index})">👁️ Detail</button><button class="btn-danger" onclick="hapusAkunMurid('${escapeHTML(u.nama)}', '${escapeHTML(u.kelas)}')">🗑️ Hapus</button></td>`;
+            tbody.appendChild(tr);
+
+            let trDetail = document.createElement('tr'); trDetail.id = `detail-${index}`; trDetail.style.display = "none";
+            trDetail.innerHTML = `<td colspan="8" style="padding:0; background:#f9f9f9; border-bottom:3px solid var(--primary-blue);"><div id="content-detail-${index}" style="padding:20px;"></div></td>`; tbody.appendChild(trDetail);
+        });
+        if(tTotal === 0) { tbody.innerHTML = "<tr><td colspan='8' style='text-align:center;'>Belum ada data murid</td></tr>"; }
+        document.getElementById('rg-total').innerText = tTotal; document.getElementById('rg-misi').innerText = tMisi; document.getElementById('rg-lab').innerText = tLab; document.getElementById('rg-kuis').innerText = tKuisCount > 0 ? (tKuisTotal/tKuisCount).toFixed(0) : 0; document.getElementById('rg-bimbing').innerText = tBimbing;
+    }
+
+    function toggleDetailMurid(nama, kelas, index) {
+        playClick(); let trDetail = document.getElementById(`detail-${index}`); let contentDetail = document.getElementById(`content-detail-${index}`);
+        if(trDetail.style.display === "none") {
+            let allUsers = JSON.parse(localStorage.getItem('cahayaSemuaSiswa') || '[]'); let user = allUsers.find(u => u.nama === nama && u.kelas === kelas);
+            if(user) { contentDetail.innerHTML = buatLaporanIndividual(user); trDetail.style.display = "table-row"; }
+        } else { trDetail.style.display = "none"; }
+    }
+
+    function buatLaporanIndividual(u) {
+        let userPayload = encodeURIComponent(JSON.stringify(u));
+        return `
+        <div style="background:white; border:2px solid var(--primary-blue); border-radius:10px; padding:20px; box-shadow:0 4px 10px rgba(0,0,0,0.1); text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #eee; padding-bottom:15px; margin-bottom:15px;">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <img src="${pengaturanGuru.logo}" alt="Logo" style="height:50px; object-fit:contain;">
+                    <div><h3 style="margin:0; color:var(--dark-blue); font-size:1.2rem;">Laporan: ${escapeHTML(u.nama)}</h3><div style="color:#777; font-size:0.9rem;">Kelas: ${escapeHTML(u.kelas)}</div></div>
+                </div>
+                <div><button class="btn btn-success" style="font-size:0.8rem; padding:8px 12px;" onclick="unduhLaporanPDF(JSON.parse(decodeURIComponent('${userPayload}')))">📥 Unduh Laporan PDF</button></div>
+            </div>
+            <div style="text-align:center; margin-top:10px;"><button class="btn" style="background:#ddd; font-size:0.9rem;" onclick="this.closest('tr').style.display='none'">Tutup Detail</button></div>
+        </div>`;
+    }
+
+    function filterTabelGuru() {
+        let inputStr = document.getElementById('rg-cari').value.toLowerCase(); let selKelas = document.getElementById('rg-filter-kelas').value;
+        document.querySelectorAll('.row-guru').forEach(r => {
+            let nama = r.querySelector('.t-nama').innerText.toLowerCase(); let kelas = r.querySelector('.t-kelas').innerText;
+            if(nama.includes(inputStr) && (selKelas === "" || kelas === selKelas)) { r.style.display = ""; } else { r.style.display = "none"; let td = document.getElementById(r.getAttribute('data-target')); if(td) td.style.display = "none"; }
+        });
+    }
+
+    function eksporCSV() {
+        let allUsers = JSON.parse(localStorage.getItem('cahayaSemuaSiswa') || '[]'); let csvContent = "data:text/csv;charset=utf-8,Nama,Kelas,Wali Kelas,Skor XP,Misi Materi Selesai,Laboratorium Selesai,HOTS Selesai,Nilai Kuis Terakhir\n";
+        allUsers.forEach(u => { let nK = (u.kuisHistory && u.kuisHistory.length > 0) ? u.kuisHistory[u.kuisHistory.length-1].skor : 0; csvContent += `"${u.nama}","${u.kelas}","${u.waliKelas||'-'}",${u.skor || 0},${u.misiSelesai?.length||0},${u.labSelesaiArr?.length||0},${u.hotsSelesai||0},${nK}\n`; });
+        var encodedUri = encodeURI(csvContent); var link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "Rekap_Nilai_Cahaya_Explorer.csv"); document.body.appendChild(link); link.click(); link.remove();
+    }
+    
+    function hapusAkunMurid(nama, kelas) {
+        tampilkanKonfirmasi(`Yakin menghapus data murid ${nama}?`, function() {
+            let allUsers = JSON.parse(localStorage.getItem('cahayaSemuaSiswa') || '[]'); 
+            allUsers = allUsers.filter(u => !(u.nama === nama && u.kelas === kelas)); 
+            localStorage.setItem('cahayaSemuaSiswa', JSON.stringify(allUsers));
+            if (state.nama === nama && state.kelas === kelas) { 
+                localStorage.removeItem('cahayaExplorerDataIslami'); 
+                state = { nama: "", kelas: "", waliKelas: "", skor: 0, bintang: 0, misiUnlocked: 1, misiSelesai: [], kuisHistory: [], refleksiSelesai: false, renunganMisi: {}, labSelesaiArr: [], detektifSelesaiArr: [], hotsSelesai: 0, jurnalData: ["","",""], refleksiData: ["","","","",""] }; 
+            }
+            renderTabelGuru();
+        });
+    }
+
+    function resetSemuaSiswaData() {
+        tampilkanKonfirmasi("Apakah Anda yakin ingin menghapus seluruh data siswa secara permanen?", function() {
+            localStorage.removeItem('cahayaSemuaSiswa'); 
+            localStorage.removeItem('cahayaExplorerDataIslami'); 
+            location.reload();
+        });
+    }
+
+    // --- CETAK LAPORAN & SERTIFIKAT ---
+    function unduhLaporanPDF(u) {
+        if (typeof html2pdf === 'undefined') { tampilkanPesan("Fitur PDF tidak dimuat. Periksa koneksi internet."); return; }
+        playClick();
+        
+        let mS = u.misiSelesai ? u.misiSelesai.length : 0; let lS = u.labSelesaiArr ? u.labSelesaiArr.length : 0;
+        let dS = u.detektifSelesaiArr ? u.detektifSelesaiArr.length : 0; let hS = u.hotsSelesai || 0;
+        let nilaiAkhir = 0; let tglKuis = "-";
+        if(u.kuisHistory && u.kuisHistory.length > 0) { let last = u.kuisHistory[u.kuisHistory.length-1]; nilaiAkhir = last.skor; tglKuis = last.tgl; }
+        
+        let predikat = "Belum Kuis", saranKuis = "Belum mengikuti kuis akhir.";
+        if(nilaiAkhir > 0) {
+            if(nilaiAkhir < 60) { predikat = "Memerlukan Bimbingan"; saranKuis = "Disarankan mengulang kembali materi dan evaluasi.";}
+            else if(nilaiAkhir < 76) { predikat = "Cukup"; saranKuis = "Perlu pendalaman konsep yang masih keliru."; }
+            else if(nilaiAkhir < 86) { predikat = "Baik"; saranKuis = "Hasil belajar baik. Pertahankan semangat belajar sains."; }
+            else { predikat = "Sangat Baik"; saranKuis = "Sangat baik. Lanjutkan mengeksplorasi ilmu sains di alam sekitar."; }
+        }
+
+        let jd = u.jurnalData || ["","",""]; let rd = u.refleksiData || ["","","","",""];
+        let rek = `<ul>`;
+        if(mS < 5) rek += `<li>Selesaikan sisa misi materi.</li>`;
+        if(lS < 5) rek += `<li>Selesaikan sisa eksperimen laboratorium.</li>`;
+        if(hS < 3) rek += `<li>Berlatih soal HOTS analitis.</li>`;
+        rek += `<li>${saranKuis}</li></ul>`;
+        if(mS===5 && lS===5 && hS>=4 && nilaiAkhir>=86) rek = `<ul><li>Tercapai hasil yang sangat optimal.</li></ul>`;
+
+        let c = document.createElement('div');
+        c.style.width = '794px';
+        c.style.padding = '40px';
+        c.style.background = 'white';
+        c.style.color = '#333';
+        c.style.fontFamily = "'Segoe UI', Arial, sans-serif";
+        c.style.boxSizing = 'border-box';
+        
+        const tdStyle = "border: 1px solid #aaa; padding: 6px;";
+
+        c.innerHTML = `
+            <!-- KOP LAPORAN -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #0088cc; padding-bottom:15px; margin-bottom:20px;">
+                <div style="flex:0 0 80px; text-align:left;">
+                    <img src="${pengaturanGuru.logo}" style="width:100%; max-height:80px; object-fit:contain;" crossorigin="anonymous">
+                </div>
+                <div style="flex:1; text-align:center; padding:0 15px;">
+                    <h2 style="margin:0; font-size:18px; color:#0088cc; font-weight:900; text-transform:uppercase;">LAPORAN PERKEMBANGAN HASIL BELAJAR</h2>
+                    <h3 style="margin:5px 0 0 0; font-size:14px; color:#e17055; font-weight:bold;">MEDIA PEMBELAJARAN INTERAKTIF CAHAYA EXPLORER</h3>
+                </div>
+                <div style="flex:0 0 80px;"></div>
+            </div>
+            
+            <!-- IDENTITAS -->
+            <div style="margin-bottom:15px; font-size:14px; font-weight:bold; color:#0088cc; text-align:left; border-bottom:2px solid #ccc;">1. IDENTITAS MURID</div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom:20px; font-size:12px; text-align:left;">
+                <tr><td style="width:25%; padding:4px 0;">Nama Siswa</td><td style="width:5%;">:</td><td style="width:70%;"><strong>${escapeHTML(u.nama)}</strong></td></tr>
+                <tr><td style="padding:4px 0;">Kelas</td><td>:</td><td><strong>${escapeHTML(u.kelas)}</strong></td></tr>
+                <tr><td style="padding:4px 0;">Wali Kelas</td><td>:</td><td><strong>${escapeHTML(u.waliKelas || '-')}</strong></td></tr>
+                <tr><td style="padding:4px 0;">Nama Madrasah</td><td>:</td><td><strong>${escapeHTML(pengaturanGuru.sekolah)}</strong></td></tr>
+                <tr><td style="padding:4px 0;">Materi</td><td>:</td><td><strong>Sifat-Sifat Cahaya</strong></td></tr>
+                <tr><td style="padding:4px 0;">Tanggal Laporan</td><td>:</td><td><strong>${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</strong></td></tr>
+            </table>
+
+            <!-- REKAPITULASI -->
+            <div style="margin-bottom:10px; font-size:14px; font-weight:bold; color:#0088cc; text-align:left; border-bottom:2px solid #ccc;">2. REKAPITULASI HASIL BELAJAR</div>
+            <table style="width: 100%; border-collapse: collapse; table-layout: fixed; word-wrap: break-word; font-size:12px; text-align:left; margin-bottom:20px; border:1px solid #aaa;">
+                <tr style="background:#f1f2f6; font-weight:bold; text-align:center;">
+                    <td style="${tdStyle} width:30%;">Aspek Pembelajaran</td><td style="${tdStyle} width:35%;">Indikator Target</td><td style="${tdStyle} width:35%;">Hasil Murid</td>
+                </tr>
+                <tr><td style="${tdStyle}">Pemahaman Konsep</td><td style="${tdStyle}">Mempelajari 5 Materi Sifat Cahaya</td><td style="${tdStyle} text-align:center;">${mS} Materi Selesai</td></tr>
+                <tr><td style="${tdStyle}">Praktik Laboratorium</td><td style="${tdStyle}">Melakukan 5 Eksperimen Mandiri</td><td style="${tdStyle} text-align:center;">${lS} Eksperimen Selesai</td></tr>
+                <tr><td style="${tdStyle}">Penerapan Konsep</td><td style="${tdStyle}">Menyelesaikan 5 Misi Detektif</td><td style="${tdStyle} text-align:center;">${dS} Misi Selesai</td></tr>
+                <tr><td style="${tdStyle}">Analisis & Penalaran (HOTS)</td><td style="${tdStyle}">Skor Sempurna (5/5) pada Tantangan Kritis</td><td style="${tdStyle} text-align:center;">Skor: ${hS}</td></tr>
+                <tr style="font-weight:bold; background:#e8f4f8;"><td style="${tdStyle}">Evaluasi Akhir (Kuis)</td><td style="${tdStyle}">Lulus Kuis Pengetahuan Cahaya</td><td style="${tdStyle} text-align:center;">Nilai: ${nilaiAkhir} (${predikat})</td></tr>
+            </table>
+
+            <!-- REFLEKSI -->
+            <div style="margin-bottom:10px; font-size:14px; font-weight:bold; color:#0088cc; text-align:left; border-bottom:2px solid #ccc;">3. JAWABAN REFLEKSI PEMBELAJARAN</div>
+            <div style="font-size:12px; line-height:1.5; margin-bottom:20px; width:100%; word-wrap:break-word;">
+                <div style="margin-bottom:10px;">
+                    <strong>A. Pengalaman Belajar (Sains):</strong>
+                    <ul style="margin-top:4px; padding-left:20px;">
+                        <li>Hal baru yang dipelajari: <em>"${escapeHTML(jd[0])}"</em></li>
+                        <li>Percobaan paling menarik: <em>"${escapeHTML(jd[1])}"</em></li>
+                        <li>Hal yang masih ingin diketahui: <em>"${escapeHTML(jd[2])}"</em></li>
+                    </ul>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <strong>B. Refleksi Karakter Panca Cinta:</strong>
+                    <ul style="margin-top:4px; padding-left:20px;">
+                        <li><strong>Cinta Allah & Rasul-Nya:</strong> <em>"${escapeHTML(rd[0])}"</em></li>
+                        <li><strong>Cinta Ilmu:</strong> <em>"${escapeHTML(rd[1])}"</em></li>
+                        <li><strong>Cinta Lingkungan:</strong> <em>"${escapeHTML(rd[2])}"</em></li>
+                        <li><strong>Cinta Tanah Air:</strong> <em>"${escapeHTML(rd[3])}"</em></li>
+                        <li><strong>Cinta Diri Sendiri & Sesama:</strong> <em>"${escapeHTML(rd[4])}"</em></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ANALISIS & REKOMENDASI -->
+            <div style="margin-bottom:10px; font-size:14px; font-weight:bold; color:#0088cc; text-align:left; border-bottom:2px solid #ccc;">4. ANALISIS DAN REKOMENDASI</div>
+            <div style="font-size:12px; line-height:1.5; margin-bottom:30px;">${rek}</div>
+            
+            <!-- TTD -->
+            <div style="display:flex; justify-content:flex-end; font-size:12px; margin-top:30px; page-break-inside:avoid;">
+                <div style="text-align:center; min-width:250px;">
+                    <p>Mengesahkan,<br>Wali Kelas</p>
+                    <div style="height:60px;"></div>
+                    <p style="font-weight:bold; text-decoration:underline; margin:0;">${escapeHTML(u.waliKelas || '-')}</p>
+                </div>
+            </div>
+        `;
+
+        const namaFile = u.nama.replace(/\s+/g, '_');
+        const opt = { 
+            margin: 10, 
+            filename: `Laporan_Hasil_Belajar_${namaFile}_${escapeHTML(u.kelas)}.pdf`, 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            html2canvas: { scale: 2, useCORS: true }, 
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        html2pdf().set(opt).from(c).save().catch(e => { 
+            tampilkanPesan("Gagal mengunduh laporan PDF.");
+        });
+    }
+
+    function unduhSertifikatPDF() {
+        if (typeof html2pdf === 'undefined') { tampilkanPesan("Fitur PDF tidak dimuat. Periksa koneksi internet."); return; }
+        playClick();
+        const c = document.getElementById('sertifikat-container');
+        const namaSiswa = state.nama.replace(/\s+/g, '_'); const kelasSiswa = state.kelas.replace(/\s+/g, '_');
+        const opt = { 
+            margin: 0, 
+            filename: `Sertifikat_${namaSiswa}_${kelasSiswa}.pdf`, 
+            image: { type: 'jpeg', quality: 1 }, 
+            html2canvas: { scale: 2, useCORS: true }, 
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } 
+        };
+        html2pdf().set(opt).from(c).save().catch(e => { tampilkanPesan("Gagal mengunduh sertifikat."); });
+    }
+
+    window.onload = () => { initApp(); };
+</script>
+</body>
+</html>
